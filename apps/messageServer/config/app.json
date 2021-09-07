@@ -1,14 +1,15 @@
 {
   "version": "0.0.1",
   "server_name": "hichat.message.rpc",
+  "host": "0.0.0.0:8081",
   "etcd": {
     "host": "192.168.3.11:2379",
     "username": "",
     "password": ""
   },
   "mysql": {
-    "host": "192.168.3.11:3306",
-    "database": "hichat_user",
+    "host": "192.168.3.11:3307",
+    "database": "hichat_message",
     "username": "root",
     "password": "123456",
     "charset": "utf8mb4",
