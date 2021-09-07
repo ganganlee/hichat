@@ -1,0 +1,67 @@
+//用户服务协议
+syntax = "proto3";
+
+option go_package = "./;user";
+
+message User{
+  int64 id = 1;
+  string uuid = 2;
+  string username = 3;
+  string password = 4;
+  string avatar = 5;
+}
+
+
+//用户注册请求
+message RegisterRequest{
+  User user = 1;
+}
+message RegisterResponse{
+  string uuid = 1;
+}
+
+//用户登录请求
+message LoginRequest{
+  string username = 1;
+  string password = 2;
+}
+message LoginResponse{
+  User user = 1;
+}
+
+//根据token查找用户
+message FindByUuidRequest{
+  string uuid = 1;
+}
+message FindByUuidResponse{
+  User user = 1;
+}
+
+//根据用户名查找用户
+message FindByUsernameRequest{
+  string username = 1;
+}
+message FindByUsernameResponse{
+  repeated User users = 1;
+}
+
+//修改用户个人信息
+message EditInfoRequest{
+  User user = 1;
+}
+message EditInfoResponse{
+  string msg = 1;
+}
+
+service UserService{
+  //用户注册
+  rpc Register(RegisterRequest) returns(RegisterResponse);
+  //用户登录
+  rpc Login(LoginRequest) returns(LoginResponse);
+  //根据token查找用户
+  rpc FindByUuid(FindByUuidRequest) returns(FindByUuidResponse);
+  //修改个人信息
+  rpc EditInfo(EditInfoRequest) returns(EditInfoResponse);
+  //根据用户名查找用户
+  rpc FindByUsername(FindByUsernameRequest) returns(FindByUsernameResponse);
+}

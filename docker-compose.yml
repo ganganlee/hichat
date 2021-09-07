@@ -1,0 +1,124 @@
+version: "2.0"
+services:
+  rabbitmq: #服务名称
+    container_name: "rabbitmq" #指定容器名称
+    image: rabbitmq:management #使用哪个镜像
+    ports: #可以指定多个，用来完成主机与容器端口之间的映射
+      - "15672:15672"
+      - "5672:5672"
+    networks: #代表使用哪个网桥（bridge）
+      - chatNetwork #此处必须使用networks进行申明
+  mysql_user: #服务名称
+    container_name: "mysql_user" #指定容器名称
+    image: mysql:5.7.34 #使用哪个镜像
+    ports: #可以指定多个，用来完成主机与容器端口之间的映射
+      - "3306:3306"
+    networks: #代表使用哪个网桥（bridge）
+      - chatNetwork #此处必须使用networks进行申明
+    environment: #定义容器的环境变量 
+      - MYSQL_ROOT_PASSWORD=123456
+    volumes:
+      - mysqlUserData:/var/lib/mysql
+  mysql_message: #服务名称
+    container_name: "mysql_message" #指定容器名称
+    image: mysql:5.7.34 #使用哪个镜像
+    ports: #可以指定多个，用来完成主机与容器端口之间的映射
+      - "3307:3306"
+    networks: #代表使用哪个网桥（bridge）
+      - chatNetwork #此处必须使用networks进行申明
+    environment: #定义容器的环境变量 
+      - MYSQL_ROOT_PASSWORD=123456
+    volumes:
+      - mysqlMessageData:/var/lib/mysql
+  mysql_assets: #服务名称
+    container_name: "mysql_assets" #指定容器名称
+    image: mysql:5.7.34 #使用哪个镜像
+    ports: #可以指定多个，用来完成主机与容器端口之间的映射
+      - "3308:3306"
+    networks: #代表使用哪个网桥（bridge）
+      - chatNetwork #此处必须使用networks进行申明
+    environment: #定义容器的环境变量
+      - MYSQL_ROOT_PASSWORD=123456
+    volumes:
+      - mysqlAssetsData:/var/lib/mysql
+  etcd:
+    image: 'bitnami/etcd:latest'
+    container_name: "etcd" #指定容器名称
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    networks:
+      - chatNetwork
+  redis-6371: # 服务名称
+    image: 'redis' # 创建容器时所需的镜像
+    container_name: "redis-6371" # 容器名称
+    restart: always # 容器总是重新启动
+    network_mode: "host" # host 网络模式
+    volumes: # 数据卷，目录挂载
+      - /www/server/redisServer/6371/config/redis.conf:/usr/local/etc/redis/redis.conf
+      - /www/server/redisServer/6371/data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf # 覆盖容器启动后默认执行的命令
+  redis-6372:
+    image: 'redis'
+    container_name: "redis-6372"
+    network_mode: "host"
+    volumes:
+      - /www/server/redisServer/6372/config/redis.conf:/usr/local/etc/redis/redis.conf
+      - /www/server/redisServer/6372/data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+  redis-6373:
+    image: 'redis'
+    container_name: "redis-6373"
+    network_mode: "host"
+    volumes:
+      - /www/server/redisServer/6373/config/redis.conf:/usr/local/etc/redis/redis.conf
+      - /www/server/redisServer/6373/data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+  redis-6374:
+    image: 'redis'
+    container_name: "redis-6374"
+    network_mode: "host"
+    volumes:
+      - /www/server/redisServer/6374/config/redis.conf:/usr/local/etc/redis/redis.conf
+      - /www/server/redisServer/6374/data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+  redis-6375:
+    image: 'redis'
+    container_name: "redis-6375"
+    network_mode: "host"
+    volumes:
+      - /www/server/redisServer/6375/config/redis.conf:/usr/local/etc/redis/redis.conf
+      - /www/server/redisServer/6375/data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+  redis-6376:
+    image: 'redis'
+    container_name: "redis-6376"
+    network_mode: "host"
+    volumes:
+      - /www/server/redisServer/6376/config/redis.conf:/usr/local/etc/redis/redis.conf
+      - /www/server/redisServer/6376/data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+networks:
+  chatNetwork:
+volumes:
+  mysqlUserData:
+    external: #使用自定义数据卷名称，使用自定义名称时，必须手动在docker中进行创建
+      true    #确认，
+  mysqlMessageData:
+    external:
+      true
+  mysqlAssetsData:
+    external:
+      true
+  nacosLogs:
+    external:
+      true
+  nacosPlugins:
+    external:
+      true
+  nacosApplication:
+    external:
+      true

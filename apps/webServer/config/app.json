@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "server_name": "hichat.web.rpc",
+  "rpc_server": {
+    "user_rpc": "hichat.user.rpc"
+  },
+  "host": "0.0.0.0:8080",
+  "etcd": {
+    "host": "192.168.3.11:2379",
+    "username": "",
+    "password": ""
+  }
+}
