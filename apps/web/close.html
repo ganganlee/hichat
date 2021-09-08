@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no,email=no,adress=no" />
+</head>
+<body>
+    <input type="text">
+    <div id="zs" style="display: none;">展示</div>
+</body>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+//方法一
+	window.onbeforeunload = function(){
+		console.log(123);
+		window.location.href = "http://www.baidu.com";
+		$('#zs').show();
+	return false;
+	}
+
+	window.onunload = function () {
+		window.location.href = "http://www.baidu.com";
+	  console.log('onunload');
+	  return false;
+	};
+ //or 方法二
+ // window.addEventListener("beforeunload", function(event) {
+ //    //event.preventDefault();
+ // 	console.log(321);
+ //    event.returnValue = "真的要关闭此窗口吗?";
+ // });
+
+ $(document).ready(function () {
+	//监听浏览器异常关闭
+	var beginTime =0;//执行onbeforeunload的开始时间
+	var differTime = 0;//时间差
+	window.onunload = function (){
+			differTime = new Date().getTime() - beginTime;
+			if(differTime <= 5) {
+				console.log("浏览器关闭")
+				//触发关闭事件，向后端background.js方法发送信息
+				chrome.runtime.sendMessage({
+					type: 'removeData'
+				}, function (response) {
+				})
+			}else{
+			    console.log("浏览器刷新")
+			}
+
+		}
+	window.onbeforeunload = function (){
+		beginTime = new Date().getTime();
+	};
+})
+</script>
+</html>

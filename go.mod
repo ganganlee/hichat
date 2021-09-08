@@ -19,6 +19,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.1.1
+	github.com/gorilla/websocket v1.4.2
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/micro/go-micro/v2 v2.9.1

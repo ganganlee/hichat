@@ -1,7 +1,6 @@
 package common
 
 import (
-	"fmt"
 	"github.com/micro/go-micro/v2/config"
 )
 
@@ -15,11 +14,12 @@ type (
 		UserRpc string `json:"user_rpc"`
 	}
 	Config struct {
-		Version    string    `json:"version"`
-		ServerName string    `json:"server_name"`
-		RpcServer  RpcServer `json:"rpc_server"`
-		Host       string    `json:"host"`
-		Etcd       Etcd      `json:"etcd"`
+		Version     string    `json:"version"`
+		ServerName  string    `json:"server_name"`
+		RpcServer   RpcServer `json:"rpc_server"`
+		Host        string    `json:"host"`
+		Etcd        Etcd      `json:"etcd"`
+		MessageHost []string  `json:"message_host"`
 	}
 )
 
@@ -35,11 +35,10 @@ func GetConfig(path string) (cfg *Config, err error) {
 
 	//将配置文件转换为结构体
 	cfg = new(Config)
+	cfg.MessageHost = make([]string, 0)
 	if err = config.Get().Scan(cfg); err != nil {
 		return nil, err
 	}
-
-	fmt.Println(cfg)
 
 	AppCfg = cfg
 	return cfg, nil

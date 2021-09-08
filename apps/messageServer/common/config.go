@@ -24,13 +24,17 @@ type (
 		Password  string   `json:"password"`
 		Address   []string `json:"address"`
 	}
+	RpcServer struct {
+		UserRpc string `json:"user_rpc"`
+	}
 	Config struct {
-		Version    string `json:"version"`
-		ServerName string `json:"server_name"`
-		Host       string `json:"host"`
-		Etcd       Etcd   `json:"etcd"`
-		Mysql      Mysql  `json:"mysql"`
-		Redis      Redis  `json:"redis"`
+		Version    string    `json:"version"`
+		ServerName string    `json:"server_name"`
+		Host       string    `json:"host"`
+		RpcServer  RpcServer `json:"rpc_server"`
+		Etcd       Etcd      `json:"etcd"`
+		Mysql      Mysql     `json:"mysql"`
+		Redis      Redis     `json:"redis"`
 	}
 )
 

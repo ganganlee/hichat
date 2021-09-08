@@ -16,7 +16,7 @@ type (
 
 	//修改信息
 	EditRequest struct {
-		Uuid     string `json:"uuid"validate:"required"`
+		Uuid     string `json:"uuid" validate:"required"`
 		Username string `json:"username" validate:"min=3,max=25"`
 		Password string `json:"password" validate:"min=6,max=25"`
 		Avatar   string `json:"avatar" validate:"url"`

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"hichat.zozoo.net/apps/webServer/common"
 	"hichat.zozoo.net/apps/webServer/route"
+	"hichat.zozoo.net/middleware"
 	"log"
 	"os"
 )
@@ -31,6 +32,11 @@ func main() {
 
 	//启动框架，注册路由
 	r := gin.Default()
+
+	//允许跨域
+	r.Use(middleware.Cors())
+
+	//注册路由
 	route.InitWebRoute(r)
 
 	//启动框架

@@ -1,6 +1,7 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Administrator">
     <words>
+      <w>conns</w>
       <w>etcd</w>
       <w>hichat</w>
       <w>xorm</w>

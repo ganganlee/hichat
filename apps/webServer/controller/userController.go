@@ -72,7 +72,7 @@ func (u *UserController) FindByUuid(c *gin.Context) {
 		rsp *service.FindByUuid
 	)
 
-	if rsp, err = u.service.FindByUuid(); err != nil {
+	if rsp, err = u.service.FindByUuid(c.GetString("uuid")); err != nil {
 		core.ResponseError(c, err.Error())
 		return
 	}

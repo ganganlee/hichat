@@ -8,6 +8,7 @@ import (
 	"hichat.zozoo.net/apps/webServer/common"
 	"hichat.zozoo.net/core"
 	"hichat.zozoo.net/rpc/user"
+	"math/rand"
 )
 
 type (
@@ -38,6 +39,7 @@ type (
 		Uuid     string
 		Username string
 		Avatar   string
+		Host     string
 	}
 )
 
@@ -107,18 +109,20 @@ func (u *UserService) Login(res *LoginRequest) (rsp *LoginResponse, err error) {
 }
 
 //根据uuid查找用户
-func (u *UserService) FindByUuid() (rsp *FindByUuid, err error) {
+func (u *UserService) FindByUuid(uuid string) (rsp *FindByUuid, err error) {
 	var rpcRsp *user.FindByUuidResponse
 	if rpcRsp, err = u.userRpc.FindByUuid(context.TODO(), &user.FindByUuidRequest{
-		Uuid: "db0179f9-bce7-485c-babd-2453ca9bdb24",
+		Uuid: uuid,
 	}); err != nil {
 		return nil, core.DecodeRpcErr(err.Error())
 	}
 
+	var messageServer = common.AppCfg.MessageHost[rand.Intn(len(common.AppCfg.MessageHost))]
 	rsp = &FindByUuid{
 		Uuid:     rpcRsp.User.Uuid,
 		Username: rpcRsp.User.Username,
 		Avatar:   rpcRsp.User.Avatar,
+		Host:     messageServer,
 	}
 	return rsp, nil
 }

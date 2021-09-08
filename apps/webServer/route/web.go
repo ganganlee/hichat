@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"hichat.zozoo.net/apps/webServer/controller"
 	"hichat.zozoo.net/apps/webServer/service"
+	"hichat.zozoo.net/middleware"
 )
 
 func InitWebRoute(c *gin.Engine) {
@@ -19,7 +20,8 @@ func InitWebRoute(c *gin.Engine) {
 		userRoute.POST("/register", userCtl.Register)
 		//用户登录
 		userRoute.POST("/login", userCtl.Login)
-		//根据uuid查找用户
-		userRoute.GET("/findByUuid",userCtl.FindByUuid)
+
+		//获取用户信息
+		userRoute.GET("/info", middleware.Auth(), userCtl.FindByUuid)
 	}
 }

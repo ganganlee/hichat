@@ -68,7 +68,7 @@ func (u *UserModel) Edit(user *User, uuid string) (err error) {
 func (u *UserModel) FindByUsername(username string) (users []User, err error) {
 
 	users = make([]User, 0)
-	if err = u.engine.Where("username like '%?%'", username).Find(&users); err != nil {
+	if err = u.engine.Where("username like ?", "%"+username+"%").Find(&users); err != nil {
 		return nil, err
 	}
 

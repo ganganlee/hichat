@@ -3,8 +3,9 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"hichat.zozoo.net/apps/messageServer/common"
-	"hichat.zozoo.net/apps/webServer/route"
+	"hichat.zozoo.net/apps/messageServer/route"
 	"hichat.zozoo.net/core"
+	"hichat.zozoo.net/middleware"
 	"log"
 	"os"
 )
@@ -39,7 +40,12 @@ func main() {
 
 	//启动框架，注册路由
 	r := gin.Default()
-	route.InitWebRoute(r)
+
+	//允许跨域
+	r.Use(middleware.Cors())
+
+	//注册路由
+	route.InitListenRoute(r)
 
 	//启动框架
 	if err = r.Run(cfg.Host); err != nil {

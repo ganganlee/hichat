@@ -1,0 +1,55 @@
+syntax = "proto3";
+option go_package = "./;userFriends";
+
+//好友信息
+message User{
+  string uuid = 1;
+  string username = 2;
+  string avatar = 3;
+}
+
+//获取好友列表
+message FriendsRequest {
+  string uuid = 1;
+}
+message FriendsResponse{
+  repeated User users = 1;
+}
+
+//添加好友申请
+message ApplyFriendsRequest{
+  string uuid = 1;
+  string friend_uuid = 2;
+}
+message ApplyFriendsResponse{
+  string msg = 1;
+}
+
+//同意好友申请
+message ApproveFriendsRequest{
+  string uuid = 1;
+  string friend_uuid = 2;
+}
+message ApproveFriendsResponse{
+  string  msg = 1;
+}
+
+//删除好友
+message DelFriendsRequest{
+  string uuid = 1;
+  string friend_uuid = 2;
+}
+message DelFriendsResponse{
+  string msg = 1;
+}
+
+service UserFriendsService{
+  //获取好友列表
+  rpc Friends(FriendsRequest) returns(FriendsResponse);
+  //添加好友申请
+  rpc ApplyFriends(ApplyFriendsRequest) returns(ApplyFriendsResponse);
+  //同意好友申请
+  rpc ApproveFriends(ApproveFriendsRequest) returns(ApproveFriendsResponse);
+  //删除好友
+  rpc DelFriends(DelFriendsRequest) returns(DelFriendsResponse);
+}

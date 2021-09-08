@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户登录 - 微聊</title>
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+<div class="loginmain">
+    <div class="login-title">
+        <span>用户登录</span>
+    </div>
+
+    <div class="login-con">
+        <div class="login-user">
+            <div class="icon">
+                <img src="images/user_icon_copy.png" alt="">
+            </div>
+            <input type="text" name="username" placeholder="请输入用户名" value="">
+        </div>
+        <div class="login-pwd">
+            <div class="icon">
+                <img src="images/lock_icon_copy.png" alt="">
+            </div>
+            <input type="password" name="password" placeholder="请输入用户密码" value="">
+        </div>
+        <div class="login-pwd">
+            <div class="icon">
+                <img src="images/lock_icon_copy.png" alt="">
+            </div>
+            <input type="password" name="confirmPassword" placeholder="请再次输入用户密码" value="">
+        </div>
+        <div class="login-btn">
+            <input type="button" value="注册" onclick="register()">
+            <a href="login.html">已有帐户，点击登录</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<!--引入loading与tips-->
+<link rel="stylesheet" href="/js/tips/style.css?t=1">
+<script src="js/tips/popups.js"></script>
+<script src="js/tips/app.js"></script>
+<script src="js/app.js?t=1"></script>
+<script src="js/config.js?t=1"></script>
+<script src="js/login.js?t=1"></script>
