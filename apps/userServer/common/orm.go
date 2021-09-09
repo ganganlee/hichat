@@ -26,7 +26,10 @@ func OrmConn(cfg *Config) (engine *xorm.Engine, err error) {
 	engine.ShowSQL(config.ShowSql)
 
 	//同步数据库结构
-	engine.Sync2(new(model.User))
+	engine.Sync2(
+		new(model.User),
+		new(model.UserFriends),
+	)
 
 	//连接池
 	engine.SetMaxIdleConns(config.MaxActive)

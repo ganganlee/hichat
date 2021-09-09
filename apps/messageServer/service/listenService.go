@@ -85,7 +85,23 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 	case "findUser": //根据用户名查找用户
 		var userService = NewUserService(uuid, Conns[uuid])
 		userService.FindByName(clientMessage.Content)
-
+		break
+	case "ApplyFriend"://申请添加好友
+		var userService = NewUserService(uuid, Conns[uuid])
+		userService.ApplyFriend(clientMessage.Content)
+		break
+	case "ApproveFriend"://同意好友申请
+		var userService = NewUserService(uuid, Conns[uuid])
+		userService.ApproveFriend(clientMessage.Content)
+		break
+	case "DelFriend"://删除好友
+		var userService = NewUserService(uuid, Conns[uuid])
+		userService.DelFriend(clientMessage.Content)
+		break
+	case "Friends"://获取好友列表
+		var userService = NewUserService(uuid, Conns[uuid])
+		userService.Friends()
+		break
 	case "privateMsg":
 		//私聊
 		fmt.Println(clientMessage.Content)

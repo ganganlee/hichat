@@ -2,10 +2,11 @@ syntax = "proto3";
 option go_package = "./;userFriends";
 
 //好友信息
-message User{
+message Friend{
   string uuid = 1;
   string username = 2;
   string avatar = 3;
+  int32 status = 4;
 }
 
 //获取好友列表
@@ -13,7 +14,7 @@ message FriendsRequest {
   string uuid = 1;
 }
 message FriendsResponse{
-  repeated User users = 1;
+  repeated Friend friends = 1;
 }
 
 //添加好友申请
