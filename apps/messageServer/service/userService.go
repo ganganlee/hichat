@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry"
@@ -119,8 +118,6 @@ func (u *UserService) DelFriend(friendUuid string) {
 
 	//调用rpc方法
 	if rpcRsp, err = u.userFriendsRpc.DelFriends(context.TODO(), rpcRes); err != nil {
-		fmt.Println(rpcRes)
-		fmt.Println(err)
 		core.ResponseSocketMessage(u.Conn, "err", core.DecodeRpcErr(err.Error()))
 		return
 	}
@@ -129,7 +126,7 @@ func (u *UserService) DelFriend(friendUuid string) {
 }
 
 //获取好友列表
-func (u *UserService) Friends() {
+func (u *UserService) Friends(val string) {
 	var (
 		err    error
 		rpcRes = &userFriends.FriendsRequest{

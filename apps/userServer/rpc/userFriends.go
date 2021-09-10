@@ -43,16 +43,16 @@ func (u *UserFriendsRpc) Friends(ctx context.Context, res *userFriends.FriendsRe
 
 	//组织返回数据
 	for _, friend := range list {
-		friends = append(friends, &userFriends.Friend{
+		userField := &userFriends.Friend{
 			Uuid:     friend.User.Uuid,
 			Username: friend.Username,
 			Avatar:   friend.Avatar,
 			Status:   friend.Status,
-		})
+		}
+		friends = append(friends,userField )
 	}
 
 	rsp.Friends = friends
-
 	return nil
 }
 

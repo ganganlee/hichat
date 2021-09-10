@@ -96,7 +96,7 @@ func (u *UserFriendsModel) DelFriends(uuid string, friendUuid string) (err error
 //获取好友列表
 func (u *UserFriendsModel) Friends(uuid string) (list []UserFriendUser, err error) {
 	userFriends := make([]UserFriendUser, 0)
-	err = u.engine.Table("user_friends").Join("INNER", "user", "user_friends.friend_uuid=user.uuid").Cols("user_friends.status", "user.uuid", "user.username", "user.avatar").Where("user_friends.uuid=?", uuid).Find(&userFriends)
+	err = u.engine.Table("user_friends").Join("INNER", "user", "user_friends.friend_uuid=user.uuid").Where("user_friends.uuid=?", uuid).Find(&userFriends)
 	if err != nil {
 		return nil, err
 	}

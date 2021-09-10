@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
+	"hichat.zozoo.net/core"
+	"reflect"
 )
 
 type (
@@ -14,7 +16,8 @@ type (
 	//通用消息结构体
 	ClientMessage struct {
 		Type    string `json:"type" validate:"required"`    //消息类型
-		Content string `json:"content" validate:"required"` //消息类容
+		Service string `json:"service" validate:"required"` //使用的服务
+		Content string `json:"content"`                     //消息类容
 	}
 )
 
@@ -78,29 +81,25 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 	//验证消息格式是否正确
 	validate := validator.New()
 	if err = validate.Struct(clientMessage); err != nil {
+		core.ResponseSocketMessage(Conns[uuid], "err", err.Error())
 		return
 	}
 
-	switch clientMessage.Type {
-	case "findUser": //根据用户名查找用户
-		var userService = NewUserService(uuid, Conns[uuid])
-		userService.FindByName(clientMessage.Content)
-		break
-	case "ApplyFriend"://申请添加好友
-		var userService = NewUserService(uuid, Conns[uuid])
-		userService.ApplyFriend(clientMessage.Content)
-		break
-	case "ApproveFriend"://同意好友申请
-		var userService = NewUserService(uuid, Conns[uuid])
-		userService.ApproveFriend(clientMessage.Content)
-		break
-	case "DelFriend"://删除好友
-		var userService = NewUserService(uuid, Conns[uuid])
-		userService.DelFriend(clientMessage.Content)
-		break
-	case "Friends"://获取好友列表
-		var userService = NewUserService(uuid, Conns[uuid])
-		userService.Friends()
+	switch clientMessage.Service {
+	case "UserService": //用户相关服务
+		var (
+			userService = NewUserService(uuid, Conns[uuid])
+			f           []reflect.Value
+		)
+
+		fmt.Println(clientMessage)
+		if f, err = core.CallFuncByName(userService, clientMessage.Type, clientMessage.Content); err != nil {
+			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
+			return
+		}
+
+		//调用反射得到的方法
+		_ = f
 		break
 	case "privateMsg":
 		//私聊
