@@ -1,0 +1,47 @@
+syntax = "proto3";
+option go_package = "./;userGroups";
+
+//用户群管理Rpc服务
+
+//群基本信息
+message Group{
+  string uuid = 1;//群主id
+  string name = 2;//群名称
+  string description = 3;//群介绍
+  string avatar = 4;//群头像
+  string gid = 5;//群id
+}
+
+//创建群
+message CreateGroupRequest{
+  Group group = 1;
+}
+message CreateGroupResponse{
+  string gid = 1;
+}
+
+//删除群
+message DelGroupRequest{
+  string uuid = 1;
+  string gid = 2;
+}
+message DelGroupResponse{
+  string msg = 1;
+}
+
+//获取群列表
+message GroupsRequest{
+  string uuid = 1;
+}
+message GroupsResponse{
+  Group groups = 1;
+}
+
+service UserGroupsService{
+  //创建群
+  rpc CreateGroup(CreateGroupRequest) returns(CreateGroupResponse);
+  //删除群
+  rpc DelGroup(DelGroupRequest) returns(DelGroupResponse);
+  //获取群列表
+  rpc Groups(GroupsRequest) returns(GroupsResponse);
+}
