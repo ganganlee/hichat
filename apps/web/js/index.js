@@ -46,20 +46,9 @@ function render() {
 }
 
 /**
- * 获取好友列表
+ * 渲染好友列表
  */
-function renderFriends() {
-    AjaxPost("/v1/friends", {}, function (json) {
-        if (json.code !== 200) {
-            jqtoast(json.msg);
-            delCookie('token');
-            setTimeout(function () {
-                window.location.href = '/login.html';
-            }, 1000);
-            return;
-        }
-
-        const friends = json.result;
+function friends(friends) {
 
         let friendList = {
             '*': [],
@@ -95,30 +84,29 @@ function renderFriends() {
         //循环列表，渲染好友数据
         for (let i in friends) {
             let friend = friends[i];
-
-            FRIENDS[friend['token']] = friend;
+            FRIENDS[friend['uuid']] = friend;
             let html = `
                 <div 
-                oncontextmenu="customMenu(event,'${friend['token']}','friend')" 
-                id="friend-${friend['token']}}" 
+                oncontextmenu="customMenu(event,'${friend['uuid']}','friend')" 
+                id="friend-${friend['uuid']}}" 
                 class="friends_box" 
-                ondblclick="chat('${friend['token']}')">
-                    <div class="user_head"><img src="${friend['head_img']}" alt=""></div>
+                ondblclick="chat('${friend['uuid']}')">
+                    <div class="user_head"><img src="${friend['avatar']}" alt=""></div>
                     <div class="friends_text">
                         <p class="user_name">${friend['username']}</p>
                     </div>
                 </div>
             `;
             let py = getPy(friend['username']);
-            if (friend.status === 0) {
+            if (!friend.hasOwnProperty('status') || friend.status === 0) {
                 py = ['*'];
                 html = `
                     <div 
-                    oncontextmenu="friendApprove('${friend['token']}','${friend.username}',this)" 
-                    id="friend-${friend['token']}}" 
+                    oncontextmenu="friendApprove('${friend['uuid']}','${friend.username}',this)" 
+                    id="friend-${friend['uuid']}}" 
                     class="friends_box" 
-                    onclick="friendApprove('${friend['token']}','${friend.username}',this)">
-                        <div class="user_head"><img src="${friend['head_img']}"></div>
+                    onclick="friendApprove('${friend['uuid']}','${friend.username}',this)">
+                        <div class="user_head"><img src="${friend['avatar']}"></div>
                         <div class="friends_text">
                             <p class="user_name">${friend['username']}</p>
                         </div>
@@ -158,13 +146,15 @@ function renderFriends() {
             let l = friendList['*'].length;
             $('#si_2 span').text(l);
             $('#si_2 span').show();
+        }else {
+            $('#si_2 span').hide();
         }
+
         //获取群列表
-        groupList();
+        // groupList();
 
         //获取历史聊天列表
-        renderHistory();
-    });
+        // renderHistory();
 }
 
 /**
@@ -265,21 +255,36 @@ function websocket() {
     ws.onopen = function (evt) {
         console.log("Connection open ...");
         messageAudio.muted = false;
+
         //获取好友列表
-        // renderFriends();
+        ws.send('{"type":"Friends","service":"UserService"}');
     };
+
     //接收到消息时触发
     ws.onmessage = function (evt) {
+        let data = JSON.parse(evt.data);
+        console.log(data);
+        //数据操作是失败！
+        if(data.type === 'err'){
+            jqtoast(data.result);
+            return;
+        }
+
+        //数据操作成功提示，没有其他操作
+        if(data.type === 'success'){
+            jqtoast(data.result)
+            return;
+        }
+
+        eval(data.type+'(data.result)');
+        return;
+
         $('iframe').remove();
         //音频提示
         //messageAudio.play();
         let iframe = document.createElement('iframe');
         iframe.src = "/media/message.mp3";
         document.body.appendChild(iframe);
-
-        let data = JSON.parse(evt.data);
-
-        console.log(data);
 
         //判断当前用户是否在聊天列表，不在聊天列表则添加
         if (!HistoryList[data.token]) {
@@ -632,53 +637,52 @@ function searchUser() {
         return;
     }
 
-    AjaxPost('/v1/user/find', {username: val}, function (json) {
-        if (json.code !== 200) {
-            jqtoast(json.msg);
-            return;
+    ws.send('{"type":"FindByName","service":"UserService","content":"'+val+'"}');
+}
+
+/**
+ * 渲染用户搜索
+ * @param users
+ */
+function findUser(users) {
+    //判断是否存在用户
+    if (users === null) {
+        jqtoast('用户不存在');
+        return;
+    }
+
+    let html = '';
+    for (let i in users) {
+        let user = users[i];
+        let status = '未添加';
+        let click = 'selectUser(this)';
+        //判断当前用户是否为自己
+        if (user.uuid === USERInfo.uuid) {
+            status = '自己';
+            click = '';
         }
 
-        //判断是否存在用户
-        if (typeof json.result.user === "undefined" || json.result.user.length === 0) {
-            jqtoast('用户不存在');
-            return;
+        //判断当前用户是否已经是好友
+        if (FRIENDS[user.uuid]) {
+            status = '已添加';
+            click = '';
         }
 
-        const users = json.result.user;
+        html += `
+            <div data-token="${user.uuid}" onclick="${click}" class="search-user-hook" style="padding: 15px;border: 1px solid #ccc;border-radius: 5px;text-align: center;margin: 15px;">
+                <img style="width: 100px;height: 100px;object-fit: cover;border-radius: 100px;" src="${user.avatar}" alt="">
+                <p>${user.username}</p>
+                <p>${status}</p>
+            </div>
+        `;
+    }
 
-        let html = '';
-        for (let i in users) {
-            let user = users[i];
-            let status = '未添加';
-            let click = 'selectUser(this)';
-            //判断当前用户是否为自己
-            if (user.token === USERInfo.token) {
-                status = '自己';
-                click = '';
-            }
+    //渲染列表
+    $('#friends-hook .model-content').html(html);
 
-            //判断当前用户是否已经是好友
-            if (FRIENDS[user.token]) {
-                status = '已添加';
-                click = '';
-            }
-
-            html += `
-                <div data-token="${user.token}" onclick="${click}" class="search-user-hook" style="padding: 15px;border: 1px solid #ccc;border-radius: 5px;text-align: center;margin: 15px 0;">
-                    <img style="width: 100px;height: 100px;object-fit: cover;border-radius: 100px;" src="${user.head_img}" alt="">
-                    <p>${user.username}</p>
-                    <p>${status}</p>
-                </div>
-            `;
-        }
-
-        //渲染列表
-        $('#friends-hook .model-content').html(html);
-
-        //展示模态框
-        changeModalStatus('#friends-hook', 'show')
-        changeModalStatus('#search-friends-hook', 'hide')
-    });
+    //展示模态框
+    changeModalStatus('#friends-hook', 'show')
+    changeModalStatus('#search-friends-hook', 'hide')
 }
 
 /**
@@ -699,15 +703,8 @@ function addUser() {
     }
 
     const token = $('#friends-hook .active').data('token');
-    AjaxPost('/v1/friends/register', {friend_token: token}, function (json) {
-        if (json.code !== 200) {
-            jqtoast(json.msg);
-            return;
-        }
-
-        jqtoast("申请发送成功！");
-        changeModalStatus('#friends-hook', 'hide');
-    });
+    ws.send('{"type":"ApplyFriend","service":"UserService","content":"'+token +'"}');
+    changeModalStatus('#friends-hook', 'hide');
 }
 
 /**
@@ -717,60 +714,34 @@ function addUser() {
  * @param el
  */
 function friendApprove(token, username, el) {
+
     jqalert({
         title: "好友申请",
         content: username + '请求添加你为好友，是否同意',
         yestext: '同意',
         notext: '拒绝',
         yesfn: function () {
-            AjaxPost('/v1/friends/approve', {'friend_token': token}, function (json) {
-                if (json.code !== 200) {
-                    jqtoast(json.msg);
-                    return;
-                }
-
-                //删除成功，移除当前列表
-                $(el).remove();
-
-                //增加提示
-                jqtoast('添加成功，赶紧去打个招呼吧！');
-
-                //控制好友角标
-                let l = $('#si_2 span').text();
-                l = parseInt(l)
-                if ((l - 1) < 1) {
-                    $('#si_2 span').hide();
-                }
-                $('#si_2 span').text(0);
-
-                //获取好友列表
-                renderFriends();
-            });
+            //同意
+            ws.send('{"type":"ApproveFriend","service":"UserService","content":"'+token+'"}');
+            //增加提示
+            setTimeout(function (){
+                ws.send('{"type":"Friends","service":"UserService"}')
+            },1500);
+            return false;
         },
         nofn: function () {
-            AjaxPost('/v1/friends/refuse', {'friend_token': token}, function (json) {
-                if (json.code !== 200) {
-                    jqtoast(json.msg);
-                    return;
-                }
-
-                //删除成功，移除当前列表
-                $(el).remove();
-
-                //控制好友角标
-                let l = $('#si_2 span').text();
-                l = parseInt(l)
-                if ((l - 1) < 1) {
-                    $('#si_2 span').hide();
-                }
-                $('#si_2 span').text(0);
-
-                //增加提示
-                jqtoast('拒绝成功')
-
-            });
+            //拒绝
+            ws.send('{"type":"RefuseFriend","service":"UserService","content":"'+token+'"}');
+            //增加提示
+            setTimeout(function (){
+                ws.send('{"type":"Friends","service":"UserService"}')
+            },1500);
         }
     });
+
+    document.oncontextmenu = function(e){
+        return false;
+    };
 }
 
 /**

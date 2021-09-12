@@ -48,6 +48,8 @@ type UserFriendsService interface {
 	ApplyFriends(ctx context.Context, in *ApplyFriendsRequest, opts ...client.CallOption) (*ApplyFriendsResponse, error)
 	//同意好友申请
 	ApproveFriends(ctx context.Context, in *ApproveFriendsRequest, opts ...client.CallOption) (*ApproveFriendsResponse, error)
+	//拒绝好友申请
+	RefuseFriends(ctx context.Context, in *RefuseFriendsRequest, opts ...client.CallOption) (*RefuseFriendsResponse, error)
 	//删除好友
 	DelFriends(ctx context.Context, in *DelFriendsRequest, opts ...client.CallOption) (*DelFriendsResponse, error)
 }
@@ -94,6 +96,16 @@ func (c *userFriendsService) ApproveFriends(ctx context.Context, in *ApproveFrie
 	return out, nil
 }
 
+func (c *userFriendsService) RefuseFriends(ctx context.Context, in *RefuseFriendsRequest, opts ...client.CallOption) (*RefuseFriendsResponse, error) {
+	req := c.c.NewRequest(c.name, "UserFriendsService.RefuseFriends", in)
+	out := new(RefuseFriendsResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userFriendsService) DelFriends(ctx context.Context, in *DelFriendsRequest, opts ...client.CallOption) (*DelFriendsResponse, error) {
 	req := c.c.NewRequest(c.name, "UserFriendsService.DelFriends", in)
 	out := new(DelFriendsResponse)
@@ -113,6 +125,8 @@ type UserFriendsServiceHandler interface {
 	ApplyFriends(context.Context, *ApplyFriendsRequest, *ApplyFriendsResponse) error
 	//同意好友申请
 	ApproveFriends(context.Context, *ApproveFriendsRequest, *ApproveFriendsResponse) error
+	//拒绝好友申请
+	RefuseFriends(context.Context, *RefuseFriendsRequest, *RefuseFriendsResponse) error
 	//删除好友
 	DelFriends(context.Context, *DelFriendsRequest, *DelFriendsResponse) error
 }
@@ -122,6 +136,7 @@ func RegisterUserFriendsServiceHandler(s server.Server, hdlr UserFriendsServiceH
 		Friends(ctx context.Context, in *FriendsRequest, out *FriendsResponse) error
 		ApplyFriends(ctx context.Context, in *ApplyFriendsRequest, out *ApplyFriendsResponse) error
 		ApproveFriends(ctx context.Context, in *ApproveFriendsRequest, out *ApproveFriendsResponse) error
+		RefuseFriends(ctx context.Context, in *RefuseFriendsRequest, out *RefuseFriendsResponse) error
 		DelFriends(ctx context.Context, in *DelFriendsRequest, out *DelFriendsResponse) error
 	}
 	type UserFriendsService struct {
@@ -145,6 +160,10 @@ func (h *userFriendsServiceHandler) ApplyFriends(ctx context.Context, in *ApplyF
 
 func (h *userFriendsServiceHandler) ApproveFriends(ctx context.Context, in *ApproveFriendsRequest, out *ApproveFriendsResponse) error {
 	return h.UserFriendsServiceHandler.ApproveFriends(ctx, in, out)
+}
+
+func (h *userFriendsServiceHandler) RefuseFriends(ctx context.Context, in *RefuseFriendsRequest, out *RefuseFriendsResponse) error {
+	return h.UserFriendsServiceHandler.RefuseFriends(ctx, in, out)
 }
 
 func (h *userFriendsServiceHandler) DelFriends(ctx context.Context, in *DelFriendsRequest, out *DelFriendsResponse) error {

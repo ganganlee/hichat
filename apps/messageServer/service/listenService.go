@@ -92,7 +92,6 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 			f           []reflect.Value
 		)
 
-		fmt.Println(clientMessage)
 		if f, err = core.CallFuncByName(userService, clientMessage.Type, clientMessage.Content); err != nil {
 			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
 			return

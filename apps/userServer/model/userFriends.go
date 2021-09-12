@@ -84,13 +84,24 @@ func (u *UserFriendsModel) DelFriends(uuid string, friendUuid string) (err error
 	}
 
 	//2、将自己从对方列表中删除
-	if _, err = u.engine.Where("uuid=? and friend_uuid=?",friendUuid,uuid).Delete(friend); err != nil {
+	if _, err = u.engine.Where("uuid=? and friend_uuid=?", friendUuid, uuid).Delete(friend); err != nil {
 		session.Rollback()
 		return err
 	}
 
 	//提交事务
 	return session.Commit()
+}
+
+//拒绝好友申请
+func (u *UserFriendsModel) RefuseFriend(uuid string, friendUuid string) (err error) {
+	var userFriend = &UserFriends{
+		Uuid:       "",
+		FriendUuid: friendUuid,
+	}
+
+	_, err = u.engine.Delete(userFriend)
+	return err
 }
 
 //获取好友列表

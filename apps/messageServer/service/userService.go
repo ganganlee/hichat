@@ -104,6 +104,26 @@ func (u *UserService) ApproveFriend(friendUuid string) {
 
 }
 
+//拒绝好友申请
+func (u *UserService) RefuseFriend(friendUuid string) {
+	var (
+		err    error
+		rpcRes = &userFriends.RefuseFriendsRequest{
+			Uuid:       u.Uuid,
+			FriendUuid: friendUuid,
+		}
+		rpcRsp *userFriends.RefuseFriendsResponse
+	)
+
+	//调用rpc方法
+	if rpcRsp, err = u.userFriendsRpc.RefuseFriends(context.TODO(), rpcRes); err != nil {
+		core.ResponseSocketMessage(u.Conn, "err", core.DecodeRpcErr(err.Error()))
+		return
+	}
+
+	core.ResponseSocketMessage(u.Conn, "success", rpcRsp.Msg)
+}
+
 //删除好友
 func (u *UserService) DelFriend(friendUuid string) {
 	var (

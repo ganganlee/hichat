@@ -32,8 +32,6 @@ func (u *UserFriendsRpc) Friends(ctx context.Context, res *userFriends.FriendsRe
 		return errors.New("用户id不能为空")
 	}
 
-	//TODO 判断缓存
-
 	//获取好友列表
 	if list, err = u.service.Friends(res.Uuid); err != nil {
 		return err
@@ -44,12 +42,12 @@ func (u *UserFriendsRpc) Friends(ctx context.Context, res *userFriends.FriendsRe
 	//组织返回数据
 	for _, friend := range list {
 		userField := &userFriends.Friend{
-			Uuid:     friend.User.Uuid,
+			Uuid:     friend.FriendUuid,
 			Username: friend.Username,
 			Avatar:   friend.Avatar,
 			Status:   friend.Status,
 		}
-		friends = append(friends,userField )
+		friends = append(friends, userField)
 	}
 
 	rsp.Friends = friends
@@ -77,8 +75,7 @@ func (u *UserFriendsRpc) ApplyFriends(ctx context.Context, res *userFriends.Appl
 		return err
 	}
 
-	//TODO 删除缓存
-	rsp.Msg = "ok"
+	rsp.Msg = "申请发送成功"
 	return nil
 }
 
@@ -103,8 +100,30 @@ func (u *UserFriendsRpc) ApproveFriends(ctx context.Context, res *userFriends.Ap
 		return err
 	}
 
-	//TODO 删除缓存
-	rsp.Msg = "ok"
+	rsp.Msg = "好友添加成功，快去打个招呼吧！"
+	return nil
+}
+
+//拒绝好友申请
+func (u *UserFriendsRpc) RefuseFriends(ctx context.Context, res *userFriends.RefuseFriendsRequest, rsp *userFriends.RefuseFriendsResponse) error {
+	var (
+		param = &service.ApplyFriendsRequest{
+			Uuid:       res.Uuid,
+			FriendUuid: res.FriendUuid,
+		}
+		validate = validator.New()
+		err      error
+	)
+
+	if err = validate.Struct(param); err != nil {
+		return err
+	}
+
+	if err = u.service.RefuseFriend(param); err != nil {
+		return err
+	}
+
+	rsp.Msg = "拒绝成功！"
 	return nil
 }
 
@@ -129,7 +148,6 @@ func (u *UserFriendsRpc) DelFriends(ctx context.Context, res *userFriends.DelFri
 		return err
 	}
 
-	//TODO 删除缓存
-	rsp.Msg = "ok"
+	rsp.Msg = "好友删除成功"
 	return nil
 }

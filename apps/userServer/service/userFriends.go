@@ -60,6 +60,7 @@ func (u *UserFriendsService) Friends(uuid string) (list []model.UserFriendUser, 
 	}
 
 	core.CLusterClient.Set(redisKey, string(b), core.DefaultExpire)
+
 	return list, nil
 }
 
@@ -97,6 +98,18 @@ func (u *UserFriendsService) ApproveFriends(res *ApplyFriendsRequest) (err error
 	redisKey = "userFriends:uuid:" + res.Uuid + ":list"
 	core.CLusterClient.Del(redisKey)
 
+	return nil
+}
+
+//拒绝好友申请
+func (u *UserFriendsService) RefuseFriend(res *ApplyFriendsRequest) (err error) {
+	if err = u.engine.RefuseFriend(res.Uuid, res.FriendUuid); err != nil {
+		return err
+	}
+
+	//删除缓存
+	var redisKey = "userFriends:uuid:" + res.Uuid + ":list"
+	core.CLusterClient.Del(redisKey)
 	return nil
 }
 

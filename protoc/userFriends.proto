@@ -35,6 +35,15 @@ message ApproveFriendsResponse{
   string  msg = 1;
 }
 
+//拒绝好友申请
+message RefuseFriendsRequest{
+  string uuid = 1;
+  string friend_uuid = 2;
+}
+message RefuseFriendsResponse{
+  string  msg = 1;
+}
+
 //删除好友
 message DelFriendsRequest{
   string uuid = 1;
@@ -51,6 +60,8 @@ service UserFriendsService{
   rpc ApplyFriends(ApplyFriendsRequest) returns(ApplyFriendsResponse);
   //同意好友申请
   rpc ApproveFriends(ApproveFriendsRequest) returns(ApproveFriendsResponse);
+  //拒绝好友申请
+  rpc RefuseFriends(RefuseFriendsRequest) returns(RefuseFriendsResponse);
   //删除好友
   rpc DelFriends(DelFriendsRequest) returns(DelFriendsResponse);
 }
