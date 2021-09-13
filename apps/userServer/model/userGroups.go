@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"github.com/xormplus/xorm"
 	"time"
 )
@@ -37,5 +38,27 @@ func (u *UserGroupsModel) Create(g *UserGroups) (err error) {
 //删除群
 func (u *UserGroupsModel) DelByModel(g *UserGroups) (err error) {
 	_, err = u.engine.Delete(g)
+	return err
+}
+
+//根据gid查找群
+func (u *UserGroupsModel) FindByGid(gid string) (userGroups *UserGroups, err error) {
+	var exist bool
+	userGroups = new(UserGroups)
+
+	if exist, err = u.engine.Where("gid=?", gid).Get(userGroups); err != nil {
+		return nil, err
+	}
+
+	if !exist {
+		return nil, errors.New("群不存在")
+	}
+
+	return
+}
+
+//修改群信息
+func (u *UserGroupsModel) EditGroups(userGroup *UserGroups) (err error) {
+	_, err = u.engine.Where("gid=? AND uuid=?", userGroup.Gid, userGroup.Uuid).Cols("name", "description", "avatar").Update(userGroup)
 	return err
 }

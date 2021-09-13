@@ -12,6 +12,7 @@ import (
 	"hichat.zozoo.net/core"
 	"hichat.zozoo.net/rpc/user"
 	"hichat.zozoo.net/rpc/userFriends"
+	"hichat.zozoo.net/rpc/userGroups"
 	"log"
 	"os"
 )
@@ -68,6 +69,15 @@ func main() {
 	if err = userFriends.RegisterUserFriendsServiceHandler(service.Server(), userFriendsRpc); err != nil {
 		log.Fatalf("注册用户好友服务失败 err:%v\n", err)
 	}
+
+	//注册用户群服务
+	groupModel := model.NewUserGroupsModel(xorm)
+	userGroupService := service2.NewUserGroupsService(groupModel)
+	userGroupRpc := rpc.NewUserGroupsRpc(userGroupService)
+	if err = userGroups.RegisterUserGroupsServiceHandler(service.Server(), userGroupRpc); err != nil {
+		log.Fatalf("注册用户群服务失败 err:%v\n", err)
+	}
+
 	//运行微服务
 	if err = service.Run(); err != nil {
 		log.Fatalf("微服务启动失败 err:%v\n", err)

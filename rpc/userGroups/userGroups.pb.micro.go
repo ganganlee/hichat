@@ -48,6 +48,10 @@ type UserGroupsService interface {
 	DelGroup(ctx context.Context, in *DelGroupRequest, opts ...client.CallOption) (*DelGroupResponse, error)
 	//获取群列表
 	Groups(ctx context.Context, in *GroupsRequest, opts ...client.CallOption) (*GroupsResponse, error)
+	//根据群id获取群
+	FindByGid(ctx context.Context, in *FindByGidRequest, opts ...client.CallOption) (*FindByGidResponse, error)
+	//修改群信息
+	EditGroup(ctx context.Context, in *EditGroupRequest, opts ...client.CallOption) (*EditGroupResponse, error)
 }
 
 type userGroupsService struct {
@@ -92,6 +96,26 @@ func (c *userGroupsService) Groups(ctx context.Context, in *GroupsRequest, opts 
 	return out, nil
 }
 
+func (c *userGroupsService) FindByGid(ctx context.Context, in *FindByGidRequest, opts ...client.CallOption) (*FindByGidResponse, error) {
+	req := c.c.NewRequest(c.name, "UserGroupsService.FindByGid", in)
+	out := new(FindByGidResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userGroupsService) EditGroup(ctx context.Context, in *EditGroupRequest, opts ...client.CallOption) (*EditGroupResponse, error) {
+	req := c.c.NewRequest(c.name, "UserGroupsService.EditGroup", in)
+	out := new(EditGroupResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for UserGroupsService service
 
 type UserGroupsServiceHandler interface {
@@ -101,6 +125,10 @@ type UserGroupsServiceHandler interface {
 	DelGroup(context.Context, *DelGroupRequest, *DelGroupResponse) error
 	//获取群列表
 	Groups(context.Context, *GroupsRequest, *GroupsResponse) error
+	//根据群id获取群
+	FindByGid(context.Context, *FindByGidRequest, *FindByGidResponse) error
+	//修改群信息
+	EditGroup(context.Context, *EditGroupRequest, *EditGroupResponse) error
 }
 
 func RegisterUserGroupsServiceHandler(s server.Server, hdlr UserGroupsServiceHandler, opts ...server.HandlerOption) error {
@@ -108,6 +136,8 @@ func RegisterUserGroupsServiceHandler(s server.Server, hdlr UserGroupsServiceHan
 		CreateGroup(ctx context.Context, in *CreateGroupRequest, out *CreateGroupResponse) error
 		DelGroup(ctx context.Context, in *DelGroupRequest, out *DelGroupResponse) error
 		Groups(ctx context.Context, in *GroupsRequest, out *GroupsResponse) error
+		FindByGid(ctx context.Context, in *FindByGidRequest, out *FindByGidResponse) error
+		EditGroup(ctx context.Context, in *EditGroupRequest, out *EditGroupResponse) error
 	}
 	type UserGroupsService struct {
 		userGroupsService
@@ -130,4 +160,12 @@ func (h *userGroupsServiceHandler) DelGroup(ctx context.Context, in *DelGroupReq
 
 func (h *userGroupsServiceHandler) Groups(ctx context.Context, in *GroupsRequest, out *GroupsResponse) error {
 	return h.UserGroupsServiceHandler.Groups(ctx, in, out)
+}
+
+func (h *userGroupsServiceHandler) FindByGid(ctx context.Context, in *FindByGidRequest, out *FindByGidResponse) error {
+	return h.UserGroupsServiceHandler.FindByGid(ctx, in, out)
+}
+
+func (h *userGroupsServiceHandler) EditGroup(ctx context.Context, in *EditGroupRequest, out *EditGroupResponse) error {
+	return h.UserGroupsServiceHandler.EditGroup(ctx, in, out)
 }

@@ -70,3 +70,52 @@ func (u *UserGroupsRpc) DelGroup(ctx context.Context, res *userGroups.DelGroupRe
 func (u *UserGroupsRpc) Groups(ctx context.Context, res *userGroups.GroupsRequest, rsp *userGroups.GroupsResponse) error {
 	return nil
 }
+
+//根据群id获取群
+func (u *UserGroupsRpc) FindByGid(ctx context.Context, res *userGroups.FindByGidRequest, rsp *userGroups.FindByGidResponse) error {
+
+	var (
+		err       error
+		userGroup *model.UserGroups
+	)
+
+	if userGroup, err = u.service.FindByGid(res.Gid); err != nil {
+		return err
+	}
+
+	rsp.Group = &userGroups.Group{
+		Name:        userGroup.Name,
+		Description: userGroup.Description,
+		Avatar:      userGroup.Avatar,
+	}
+	return nil
+}
+
+//修改群信息
+func (u *UserGroupsRpc) EditGroup(ctx context.Context, res *userGroups.EditGroupRequest, rsp *userGroups.EditGroupResponse) error {
+	var (
+		err      error
+		rpcRes   *service.EditGroupRequest
+		validate = validator.New()
+	)
+
+	rpcRes = &service.EditGroupRequest{
+		Gid:         res.Group.Gid,
+		Uuid:        res.Group.Uuid,
+		Name:        res.Group.Name,
+		Description: res.Group.Description,
+		Avatar:      res.Group.Avatar,
+	}
+
+	//参数验证
+	if err = validate.Struct(rpcRes); err != nil {
+		return err
+	}
+
+	if err = u.service.EditGroup(rpcRes); err != nil {
+		return err
+	}
+
+	rsp.Msg = "修改成功！"
+	return nil
+}

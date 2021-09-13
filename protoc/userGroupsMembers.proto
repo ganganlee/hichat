@@ -1,0 +1,43 @@
+syntax = "proto3";
+option go_package = "./;userGroupsMembers";
+
+//用户群成员管理
+message Member {
+  string gid = 1;
+  string uuid = 2;
+}
+
+//添加群成员
+message AddMemberRequest{
+  string gid = 1;
+  string member_uuid = 2;
+}
+message AddMemberResponse{
+  string msg = 1;
+}
+
+//删除群成员
+message DelByMemberIdRequest{
+  string gid = 1;
+  string member_uuid = 2;
+}
+message DelByMemberIdResponse{
+  string msg = 1;
+}
+
+//解散群成员
+message DelMembersRequest{
+  string gid = 1;
+}
+message DelMembersResponse{
+  string msg = 1;
+}
+
+service UserGroupsMembersService{
+  //添加群成员
+  rpc AddMember(AddMemberRequest) returns(AddMemberResponse);
+  //删除群成员
+  rpc DelByMember(DelByMemberIdRequest) returns(DelByMemberIdResponse);
+  //解散群
+  rpc DelMembers(DelMembersRequest) returns(DelMembersResponse);
+}

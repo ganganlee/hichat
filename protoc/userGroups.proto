@@ -37,6 +37,22 @@ message GroupsResponse{
   Group groups = 1;
 }
 
+//根据gid查找群
+message FindByGidRequest{
+  string gid = 1;
+}
+message FindByGidResponse{
+  Group group = 1;
+}
+
+//修改群信息
+message EditGroupRequest{
+  Group group = 1;
+}
+message EditGroupResponse{
+  string msg = 1;
+}
+
 service UserGroupsService{
   //创建群
   rpc CreateGroup(CreateGroupRequest) returns(CreateGroupResponse);
@@ -44,4 +60,8 @@ service UserGroupsService{
   rpc DelGroup(DelGroupRequest) returns(DelGroupResponse);
   //获取群列表
   rpc Groups(GroupsRequest) returns(GroupsResponse);
+  //根据群id获取群
+  rpc FindByGid(FindByGidRequest) returns(FindByGidResponse);
+  //修改群信息
+  rpc EditGroup(EditGroupRequest) returns(EditGroupResponse);
 }

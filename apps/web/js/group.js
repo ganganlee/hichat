@@ -1,7 +1,12 @@
 /**
  * 展示创建群聊模态框
  */
-function createGroup() {
+function createGroup(res) {
+    if(typeof res !== "undefined"){
+        jqtoast('群创建成功');
+        return
+    }
+
     $("#search-friends-hook").hide();
     $("#user-group-hook").css('display', 'flex');
 }
@@ -13,19 +18,28 @@ function sendCreateGroup() {
     const name = $('input[name=group-name]').val();
     const description = $('textarea[name=group-description]').val();
     const avatar = $('input[name=group-avatar]').val();
-    AjaxPost("/v1/group/", {
-        "username": name,
-        "description": description,
-        "head_img": avatar
-    }, (json) => {
-        if (json.code !== 200) {
-            jqtoast(json.msg)
-            return false;
-        }
+    if(name === ""){
+        jqtoast("群名称不能为空")
+        return false;
+    }
+    if(description === ""){
+        jqtoast("群描述不能为空")
+        return false;
+    }
+    if(avatar === ""){
+        jqtoast("群头像不能为空")
+        return false;
+    }
 
-        jqtoast('创建成功！');
-        changeModalStatus('#user-group-hook', 'hide');
-    });
+    ws.send('{"type":"CreateGroup","service":"UserGroupsService","content":"{\\"name\\":\\"'+name+'\\",\\"description\\":\\"'+description+'\\",\\"avatar\\":\\"'+avatar+'\\"}"}')
+
+    changeModalStatus('#user-group-hook', 'hide');
+}
+
+function updateGroup() {
+    ws.send('{"type":"EditGroup","service":"UserGroupsService","content":"{\\"name\\":\\"修改群\\",\\"description\\":\\"修改群\\",\\"avatar\\":\\"https://p5.toutiaoimg.com/origin/pgc-image/06be98af5dd4491993ac131c9a3410cf\\",\\"gid\\":\\"38de63fd-d1a5-4ccb-9885-334f91ae0bda\\"}"}')
+
+    changeModalStatus('#user-group-hook', 'hide');
 }
 
 //获取群列表

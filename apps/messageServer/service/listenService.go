@@ -75,6 +75,8 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 
 	err = json.Unmarshal(msg, clientMessage)
 	if err != nil {
+		fmt.Println(string(msg))
+		fmt.Println(err)
 		return
 	}
 
@@ -84,6 +86,8 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 		core.ResponseSocketMessage(Conns[uuid], "err", err.Error())
 		return
 	}
+
+	fmt.Println(clientMessage)
 
 	switch clientMessage.Service {
 	case "UserService": //用户相关服务
@@ -100,10 +104,19 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 		//调用反射得到的方法
 		_ = f
 		break
-	case "privateMsg":
-		//私聊
-		fmt.Println(clientMessage.Content)
-		//m.sendPrivateMsg(uuid, clientMessage)
+	case "UserGroupsService": //用户群相关
+		var (
+			userGroupsService = NewUserGroupService(uuid, Conns[uuid])
+			f                 []reflect.Value
+		)
+
+		if f, err = core.CallFuncByName(userGroupsService, clientMessage.Type, clientMessage.Content); err != nil {
+			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
+			return
+		}
+
+		//调用反射得到的方法
+		_ = f
 		break
 	case "groupMsg":
 		//群聊
