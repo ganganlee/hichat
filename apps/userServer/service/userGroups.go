@@ -1,15 +1,22 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/google/uuid"
+	"github.com/micro/go-micro/v2"
+	"github.com/micro/go-micro/v2/registry"
+	"github.com/micro/go-micro/v2/registry/etcd"
+	"hichat.zozoo.net/apps/userServer/common"
 	"hichat.zozoo.net/apps/userServer/model"
 	"hichat.zozoo.net/core"
+	"hichat.zozoo.net/rpc/userGroupMembers"
 )
 
 type (
 	UserGroupsService struct {
-		model *model.UserGroupsModel
+		model           *model.UserGroupsModel
+		groupMembersRpc userGroupMembers.UserGroupMembersService
 	}
 
 	//获取群列表结构体
@@ -29,8 +36,15 @@ type (
 )
 
 func NewUserGroupsService(m *model.UserGroupsModel) *UserGroupsService {
+	var (
+		server = micro.NewService(
+			micro.Registry(etcd.NewRegistry(registry.Addrs(common.AppCfg.Etcd.Host))),
+		)
+		groupMembersRpc = userGroupMembers.NewUserGroupMembersService(common.AppCfg.ServerName, server.Client())
+	)
 	return &UserGroupsService{
 		m,
+		groupMembersRpc,
 	}
 }
 
@@ -55,8 +69,34 @@ func (u *UserGroupsService) DelGroup(res *GroupsRequest) (err error) {
 }
 
 //获取群列表
-func (u *UserGroupsService) Groups(res *GroupsRequest) (err error) {
-	return err
+func (u *UserGroupsService) Groups(uuid string) (list []model.UserGroups, err error) {
+	var (
+		rpcRsp *userGroupMembers.MemberGroupsResponse
+	)
+	//调用rpc方法获取群id列表
+	if rpcRsp, err = u.groupMembersRpc.MemberGroups(context.TODO(), &userGroupMembers.MemberGroupsRequest{Uuid: uuid}); err != nil {
+		return nil, err
+	}
+
+	list = make([]model.UserGroups, 0)
+	for _, val := range rpcRsp.Groups {
+		var (
+			m *model.UserGroups
+		)
+		if m, err = u.FindByGid(val); err != nil {
+			return nil, err
+		}
+
+		list = append(list, model.UserGroups{
+			Gid:         m.Gid,
+			Uuid:        m.Uuid,
+			Avatar:      m.Avatar,
+			Description: m.Description,
+			Name:        m.Name,
+		})
+	}
+
+	return list, nil
 }
 
 //获取群信息，根据群id
@@ -65,6 +105,8 @@ func (u *UserGroupsService) FindByGid(gid string) (userGroup *model.UserGroups, 
 		redisKey = "user_groups:gid:" + gid + ":json" //缓存key
 		b        []byte                               //字符切片
 	)
+
+	userGroup = new(model.UserGroups)
 
 	//获取缓存
 	if b, err = core.CLusterClient.Get(redisKey).Bytes(); err == nil {

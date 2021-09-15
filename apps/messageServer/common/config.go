@@ -25,7 +25,7 @@ type (
 		Address   []string `json:"address"`
 	}
 	RpcServer struct {
-		UserRpc string `json:"user_rpc"`
+		UserRpc   string `json:"user_rpc"`
 	}
 	Config struct {
 		Version    string    `json:"version"`

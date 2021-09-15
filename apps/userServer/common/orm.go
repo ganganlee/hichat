@@ -27,9 +27,10 @@ func OrmConn(cfg *Config) (engine *xorm.Engine, err error) {
 
 	//同步数据库结构
 	engine.Sync2(
-		new(model.User),//用户表
-		new(model.UserFriends),//用户好友表
-		new(model.UserGroups),//用户群表
+		new(model.User),             //用户表
+		new(model.UserFriends),      //用户好友表
+		new(model.UserGroups),       //用户群表
+		new(model.UserGroupMembers), //用户群成员表
 	)
 
 	//连接池

@@ -116,8 +116,23 @@ func (u *UserGroupService) DelGroup(gid string) {
 }
 
 //获取群列表
-func (u *UserGroupService) Groups(res string) {
+func (u *UserGroupService) Groups(gid string) {
+	var (
+		res *userGroups.GroupsRequest
+		rsp *userGroups.GroupsResponse
+		err error
+	)
 
+	res = &userGroups.GroupsRequest{
+		Uuid: u.Uuid,
+	}
+
+	if rsp, err = u.groupRpc.Groups(context.TODO(), res); err != nil {
+		core.ResponseSocketMessage(u.Conn, "err", core.DecodeRpcErr(err.Error()))
+		return
+	}
+
+	core.ResponseSocketMessage(u.Conn, "Groups", rsp)
 }
 
 //根据gid查找群

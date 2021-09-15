@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "./;userGroupsMembers";
+option go_package = "./;userGroupMembers";
 
 //用户群成员管理
 message Member {
@@ -10,7 +10,7 @@ message Member {
 //添加群成员
 message AddMemberRequest{
   string gid = 1;
-  string member_uuid = 2;
+  string uuid = 2;
 }
 message AddMemberResponse{
   string msg = 1;
@@ -19,7 +19,7 @@ message AddMemberResponse{
 //删除群成员
 message DelByMemberIdRequest{
   string gid = 1;
-  string member_uuid = 2;
+  string uuid = 2;
 }
 message DelByMemberIdResponse{
   string msg = 1;
@@ -33,11 +33,21 @@ message DelMembersResponse{
   string msg = 1;
 }
 
-service UserGroupsMembersService{
+//获取群列表
+message MemberGroupsRequest{
+  string uuid = 1;
+}
+message MemberGroupsResponse{
+  repeated string groups = 1;
+}
+
+service UserGroupMembersService{
   //添加群成员
   rpc AddMember(AddMemberRequest) returns(AddMemberResponse);
   //删除群成员
-  rpc DelByMember(DelByMemberIdRequest) returns(DelByMemberIdResponse);
+  rpc DelByMemberId(DelByMemberIdRequest) returns(DelByMemberIdResponse);
   //解散群
   rpc DelMembers(DelMembersRequest) returns(DelMembersResponse);
+  //获取群列表
+  rpc MemberGroups(MemberGroupsRequest) returns(MemberGroupsResponse);
 }

@@ -68,6 +68,29 @@ func (u *UserGroupsRpc) DelGroup(ctx context.Context, res *userGroups.DelGroupRe
 
 //获取群列表
 func (u *UserGroupsRpc) Groups(ctx context.Context, res *userGroups.GroupsRequest, rsp *userGroups.GroupsResponse) error {
+	var (
+		err  error
+		list []model.UserGroups
+		data []*userGroups.Group
+	)
+
+	if list, err = u.service.Groups(res.Uuid); err != nil {
+		return err
+	}
+
+	data = make([]*userGroups.Group, 0)
+
+	for _, val := range list {
+		data = append(data, &userGroups.Group{
+			Uuid:        val.Uuid,
+			Name:        val.Name,
+			Description: val.Description,
+			Avatar:      val.Avatar,
+			Gid:         val.Gid,
+		})
+	}
+
+	rsp.Groups = data
 	return nil
 }
 

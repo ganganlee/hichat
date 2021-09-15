@@ -34,7 +34,7 @@ message GroupsRequest{
   string uuid = 1;
 }
 message GroupsResponse{
-  Group groups = 1;
+  repeated Group groups = 1;
 }
 
 //根据gid查找群
