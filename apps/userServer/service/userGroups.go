@@ -52,7 +52,22 @@ func NewUserGroupsService(m *model.UserGroupsModel) *UserGroupsService {
 func (u *UserGroupsService) CreateGroup(g *model.UserGroups) (err error) {
 	//创建用户gid
 	g.Gid = uuid.New().String()
-	return u.model.Create(g)
+
+	//调用群成员rpc方法添加成员
+	if err = u.model.Create(g); err != nil {
+		return err
+	}
+
+	//调用群成员rpc方法添加成员
+	var res = &userGroupMembers.AddMemberRequest{
+		Gid:  g.Gid,
+		Uuid: g.Uuid,
+	}
+	if _, err = u.groupMembersRpc.AddMember(context.TODO(), res); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //删除群

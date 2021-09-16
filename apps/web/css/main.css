@@ -891,3 +891,12 @@ ul.am-dropdown-content>li>a:focus, ul.am-dropdown-content>li>a:hover{
 iframe{
 	display: none;
 }
+.group_list{
+	position: relative !important;
+}
+.group_list li > p {
+	font-size: 12px;
+	color: #999;
+	line-height: 26px;
+	padding-left: 12px;
+}

@@ -6,6 +6,8 @@ let CHATInfo = {};
 
 //好友列表
 let FRIENDS = [];
+let GROUPS = [];
+
 //聊天列表
 let HistoryList = [];
 //音频对象
@@ -164,17 +166,20 @@ function friends(friends) {
 function chat(token,msgType) {
 
     //设置聊天类型，1 私聊，2 群聊
-    if(typeof msgType === "undefined"){
-        msgType = ChatType.chat;
-    }
-
     $('#send').data('chatType',msgType);
 
     //修改title
     $('title').text('微聊');
 
     //保存聊天对象
-    CHATInfo = FRIENDS[token];
+    switch (msgType) {
+        case 'groupChat'://群聊
+            CHATInfo = GROUPS[token];
+            break;
+        case 'privateChat'://私聊
+            CHATInfo = FRIENDS[token];
+            break;
+    }
 
     //判断当前用户是否在聊天列表，不在聊天列表则添加
     if (!HistoryList[token]) {
@@ -182,7 +187,9 @@ function chat(token,msgType) {
             date: (new Date().getTime()) * 1000000,
             msg: "",
             token: token,
-            unread: 0
+            unread: 0,
+            avatar:CHATInfo.avatar,
+            username:CHATInfo.username
         };
 
         HistoryList[token] = res;
@@ -258,6 +265,8 @@ function websocket() {
 
         //获取好友列表
         ws.send('{"type":"Friends","service":"UserService"}');
+        //获取群列表
+        ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
     };
 
     //接收到消息时触发
@@ -563,11 +572,11 @@ function AppendHistoryHtml(user) {
         ondblclick="chat('${user['token']}')"
         oncontextmenu="customMenu(event,'${user['token']}','history')">
             <div class="user_head">
-                <img src="${FRIENDS[user['token']]['head_img']}" alt="">
+                <img src="${user['avatar']}" alt="">
                 <span class="unread-message" style="display: ${unreadStatus}">${user.unread}</span>
             </div>
             <div class="user_text">
-                <p class="user_name">${FRIENDS[user['token']]['username']}</p>
+                <p class="user_name">${user['username']}</p>
                 <p class="user_message">${user.msg}</p>
             </div>
             <div class="user_time">${d}</div>

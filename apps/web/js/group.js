@@ -4,6 +4,7 @@
 function createGroup(res) {
     if(typeof res !== "undefined"){
         jqtoast('群创建成功');
+        ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
         return
     }
 
@@ -36,52 +37,46 @@ function sendCreateGroup() {
     changeModalStatus('#user-group-hook', 'hide');
 }
 
+//修改群信息
 function updateGroup() {
     ws.send('{"type":"EditGroup","service":"UserGroupsService","content":"{\\"name\\":\\"修改群\\",\\"description\\":\\"修改群\\",\\"avatar\\":\\"https://p5.toutiaoimg.com/origin/pgc-image/06be98af5dd4491993ac131c9a3410cf\\",\\"gid\\":\\"38de63fd-d1a5-4ccb-9885-334f91ae0bda\\"}"}')
 
     changeModalStatus('#user-group-hook', 'hide');
 }
 
-//获取群列表
-function groupList() {
-    AjaxGet("/v1/group/list", "", (json) => {
+/**
+ * 渲染群列表
+ * @param data
+ * @constructor
+ */
+function Groups(data) {
+    const groups = data.groups;
+    let html = '';
+    for(let i in groups){
+        let item = groups[i];
+        GROUPS[item['gid']] = {
+            avatar: item.avatar,
+            username: item.name,
+            uuid: item.gid,
+            status :1,
+            group : true
+        };
 
-        if (json.code != 200) {
-            jqtoast(json.msg);
-            return false;
-        }
-
-        const data = json.result;
-        let html = '';
-        for (let i in data) {
-            let info = data[i];
-            info['id'] = 0;
-
-            FRIENDS[info['token']] = info;
-            html += `
-                <div 
-                oncontextmenu="customMenu(event,'${info['token']}','friend')" 
-                id="friend-${info['token']}}" 
-                class="friends_box" 
-                ondblclick="chat('${info['token']}',${ChatType.group})">
-                    <div class="user_head"><img src="${info['head_img']}" alt=""></div>
-                    <div class="friends_text">
-                        <p class="user_name">${info['username']}</p>
-                    </div>
+        html += `
+            <div 
+            oncontextmenu="customMenu(event,'${item['gid']}','friend')" 
+            id="friend-${item['gid']}}" 
+            class="friends_box" 
+            ondblclick="chat('${item['gid']}','groupChat')">
+                <div class="user_head"><img src="${item['avatar']}" alt=""></div>
+                <div class="friends_text">
+                    <p class="user_name">${item['name']}</p>
                 </div>
-            `;
-        }
+            </div>
+        `;
+    }
 
-        //存在数据，往好友列表中添加
-        if (html !== '') {
-            html = `
-                <li>
-                    <p>群聊</p>
-                    ${html}
-                </li>
-            `;
-
-            $('.friends_list').prepend(html);
-        }
-    })
+    let dom = $('.group_list li');
+    dom.children('.friends_box').remove();
+    dom.append(html);
 }
