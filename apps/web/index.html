@@ -28,8 +28,8 @@
                         <p><span>地区</span>江西 九江</p>
                         <div class="own_head_bottom_img">
                             <a
-                                style="cursor: pointer"
-                                onclick="changeModalStatus('#update-info-hook','show');$('.user-head-img-model').hide()">
+                                    style="cursor: pointer"
+                                    onclick="changeModalStatus('#update-info-hook','show');$('.user-head-img-model').hide()">
                                 修改
                             </a>
                         </div>
@@ -48,8 +48,11 @@
                 <div class="am-dropdown" id="doc-dropdown-js" style="position: initial;">
                     <div class="sidestrip_bc"></div>
                     <ul class="am-dropdown-content" style="min-width: 60px;">
-                        <li><a href="#" data-am-modal="{target: &#39;#doc-modal-1&#39;, closeViaDimmer: 0, width: 400, height: 225}">意见反馈</a></li>
-                        <li><a href="http://code_demo.99yuanma.net:8889/code_demo/6012cad06a1ca/index.html#">备份与恢复</a></li>
+                        <li><a href="#"
+                               data-am-modal="{target: &#39;#doc-modal-1&#39;, closeViaDimmer: 0, width: 400, height: 225}">意见反馈</a>
+                        </li>
+                        <li><a href="http://code_demo.99yuanma.net:8889/code_demo/6012cad06a1ca/index.html#">备份与恢复</a>
+                        </li>
                         <li><a href="http://code_demo.99yuanma.net:8889/code_demo/6012cad06a1ca/index.html#">设置</a></li>
                     </ul>
                 </div>
@@ -64,7 +67,8 @@
             </div>
             <div class="office_text" style="overflow: hidden;">
                 <ul class="user_list" style="top: 0px; position: absolute;"></ul>
-                <div style="position: absolute; display: block; line-height: 0; height: 610px;" class="zUIpanelScrollBox"></div>
+                <div style="position: absolute; display: block; line-height: 0; height: 610px;"
+                     class="zUIpanelScrollBox"></div>
             </div>
         </div>
 
@@ -143,7 +147,7 @@
                         </li>
                         <li onclick="logout()"><a><img src="./images/icon10.png"></a></li>
                     </ul>
-                    <div class="extend" data-am-offcanvas="{target: &#39;#doc-oc-demo3&#39;}"></div>
+                    <div class="extend"></div>
                     <!-- 侧边栏内容 -->
                 </div>
             </div>
@@ -153,7 +157,8 @@
                 <div class="office_text" id="chat-container" style="height: 100%; overflow: hidden;">
                     <ul class="content" id="chat-wrapper" style="top: 0px; position: absolute;">
                     </ul>
-                    <div style="position: absolute; display: none; line-height: 0; height: 0px;" class="zUIpanelScrollBox"></div>
+                    <div style="position: absolute; display: none; line-height: 0; height: 0px;"
+                         class="zUIpanelScrollBox"></div>
                 </div>
             </div>
 
@@ -237,9 +242,11 @@
                 <div class="form-upload">
                     <input type="text" name="update-head-img" placeholder="请输入用户名，为空则不修改">
                     <span>上传图片</span>
-                    <input type="file" accept="image/*" id="update-head-img" onchange="upload('#update-head-img',handleHeadImg)">
+                    <input type="file" accept="image/*" id="update-head-img"
+                           onchange="upload('#update-head-img',handleHeadImg)">
                 </div>
-                <img class="show-user-img" src="" alt="" style="width: 80px;height: 80px;border-radius: 3px;margin-top: 5px;object-fit: cover;">
+                <img class="show-user-img" src="" alt=""
+                     style="width: 80px;height: 80px;border-radius: 3px;margin-top: 5px;object-fit: cover;">
             </div>
         </div>
         <div class="model-footer">
@@ -272,9 +279,11 @@
                 <div class="form-upload">
                     <input type="text" name="group-avatar" placeholder="请上传群">
                     <span>上传图片</span>
-                    <input type="file" accept="image/*" id="group-avatar" onchange="upload('#group-avatar',handleGroupAvatar)">
+                    <input type="file" accept="image/*" id="group-avatar"
+                           onchange="upload('#group-avatar',handleGroupAvatar)">
                 </div>
-                <img class="group-avatar" src="" alt="" style="width: 80px;height: 80px;border-radius: 3px;margin-top: 5px;object-fit: cover;display: none">
+                <img class="group-avatar" src="" alt=""
+                     style="width: 80px;height: 80px;border-radius: 3px;margin-top: 5px;object-fit: cover;display: none">
             </div>
         </div>
         <div class="model-footer">
@@ -301,6 +310,7 @@
 <script src="js/app.js?t=1"></script>
 <script src="js/config.js?t=4"></script>
 <script src="js/index.js?t=3"></script>
+<script src="js/history.js?t=3"></script>
 <script src="js/group.js?t=1"></script>
 <script src="js/date.js"></script>
 <script src="js/strToPy.js"></script>

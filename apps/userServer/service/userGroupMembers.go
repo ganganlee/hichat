@@ -95,6 +95,8 @@ func (u *UserGroupMembersService) AppendMember(res *AddMemberRequest) (err error
 		return err
 	}
 
+	//需要获取成员信息，调用rpc接口，因为获取群成员时需要使用
+
 	//添加群成员缓存
 	membersKey = "user_group_members:gid:" + res.Gid + ":member"
 	core.CLusterClient.SAdd(membersKey, res.Gid)

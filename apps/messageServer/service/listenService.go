@@ -132,6 +132,20 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 		//调用反射得到的方法
 		_ = f
 		break
+	case "HistoryRecordService": //用户历史消息相关
+		var (
+			history = NewHistoryRecord(Conns[uuid], uuid)
+			f             []reflect.Value
+		)
+
+		if f, err = core.CallFuncByName(history, clientMessage.Type, clientMessage.Content); err != nil {
+			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
+			return
+		}
+
+		//调用反射得到的方法
+		_ = f
+		break
 	case "groupMsg":
 		//群聊
 		//var (

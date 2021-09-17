@@ -7,6 +7,12 @@ message Member {
   string uuid = 2;
 }
 
+message User{
+  string uuid = 1;
+  string username = 2;
+  string avatar = 3;
+}
+
 //添加群成员
 message AddMemberRequest{
   string gid = 1;
@@ -41,6 +47,14 @@ message MemberGroupsResponse{
   repeated string groups = 1;
 }
 
+//获取群成员列表
+message MembersRequest{
+  string gid = 1;
+}
+message MembersResponse{
+  repeated User members = 1;
+}
+
 service UserGroupMembersService{
   //添加群成员
   rpc AddMember(AddMemberRequest) returns(AddMemberResponse);
@@ -50,4 +64,6 @@ service UserGroupMembersService{
   rpc DelMembers(DelMembersRequest) returns(DelMembersResponse);
   //获取群列表
   rpc MemberGroups(MemberGroupsRequest) returns(MemberGroupsResponse);
+  //获取群成员列表
+  rpc Members(MembersRequest) returns(MembersResponse);
 }

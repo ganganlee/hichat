@@ -67,7 +67,7 @@ function Groups(data) {
             oncontextmenu="customMenu(event,'${item['gid']}','friend')" 
             id="friend-${item['gid']}}" 
             class="friends_box" 
-            ondblclick="chat('${item['gid']}','groupChat')">
+            ondblclick="chat('${item['gid']}','groupMessage')">
                 <div class="user_head"><img src="${item['avatar']}" alt=""></div>
                 <div class="friends_text">
                     <p class="user_name">${item['name']}</p>
@@ -79,4 +79,14 @@ function Groups(data) {
     let dom = $('.group_list li');
     dom.children('.friends_box').remove();
     dom.append(html);
+}
+
+//获取群成员
+function GroupMembers(data){
+    if (typeof data === "undefined"){
+        //发送获取群成员请求
+        console.log("获取群成员");
+        // ws.send();
+        return false;
+    }
 }

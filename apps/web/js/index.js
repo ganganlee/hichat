@@ -173,10 +173,10 @@ function chat(token,msgType) {
 
     //保存聊天对象
     switch (msgType) {
-        case 'groupChat'://群聊
+        case 'groupMessage'://群聊
             CHATInfo = GROUPS[token];
             break;
-        case 'privateChat'://私聊
+        case 'privateMessage'://私聊
             CHATInfo = FRIENDS[token];
             break;
     }
@@ -194,6 +194,9 @@ function chat(token,msgType) {
 
         HistoryList[token] = res;
         AppendHistoryHtml(res);
+
+        //将消息加入到缓存
+        ws.send('{"type":"SetHistoryRecord","service":"HistoryRecordService","content":"{\\"type\\":\\"'+msgType+'\\",\\"id\\":\\"'+token+'\\"}"}')
     }
 
     //设置聊天dom的用户信息
@@ -211,45 +214,60 @@ function chat(token,msgType) {
     //增加当前列表聊天样式
     $('.user_list li').removeClass('user_active');
     $(`.history-${token}`).addClass('user_active');
+    //获取当前的聊天记录
+
+    //将当前消息加入到聊天记录中
+
+    //判断类型，获取额外信息
+    //保存聊天对象
+    switch (msgType) {
+        case 'groupMessage'://群聊
+            $('.extend').attr('onclick','GroupMembers()');
+            break;
+        case 'privateMessage'://私聊
+            CHATInfo = FRIENDS[token];
+            break;
+    }
+
 
     //获取聊天记录
-    AjaxMsg('/v1/msg/history', {
-        "from_token": USERInfo.token,
-        "from_user_id": USERInfo.id,
-        "friend_token": CHATInfo.token,
-        "friend_user_id": CHATInfo.id,
-        "page": 1,
-        "page_size": 20
-    }, function (json) {
-        if (json.code !== 200) {
-            jqtoast(json.msg);
-            return;
-        }
-        if (!json.result) {
-            return;
-        }
-
-        const data = json.result;
-        for (let i = data.length - 1; i >= 0; i--) {
-            let message = JSON.parse(data[i].message);
-
-            //判断接收者
-            let position = 'other';
-            let headImg = CHATInfo.head_img;
-            let nickname = CHATInfo.username;
-            if (message.receive_token === CHATInfo.token) {
-                position = 'me';
-                headImg = USERInfo.head_img;
-                nickname = USERInfo.username;
-            }
-
-            //渲染消息
-            fillingMsg(message.type, message.content, headImg, nickname, position);
-        }
-
-        //dom滚动至底部
-        scrollToFooter('#chat-wrapper');
-    });
+    // AjaxMsg('/v1/msg/history', {
+    //     "from_token": USERInfo.token,
+    //     "from_user_id": USERInfo.id,
+    //     "friend_token": CHATInfo.token,
+    //     "friend_user_id": CHATInfo.id,
+    //     "page": 1,
+    //     "page_size": 20
+    // }, function (json) {
+    //     if (json.code !== 200) {
+    //         jqtoast(json.msg);
+    //         return;
+    //     }
+    //     if (!json.result) {
+    //         return;
+    //     }
+    //
+    //     const data = json.result;
+    //     for (let i = data.length - 1; i >= 0; i--) {
+    //         let message = JSON.parse(data[i].message);
+    //
+    //         //判断接收者
+    //         let position = 'other';
+    //         let headImg = CHATInfo.head_img;
+    //         let nickname = CHATInfo.username;
+    //         if (message.receive_token === CHATInfo.token) {
+    //             position = 'me';
+    //             headImg = USERInfo.head_img;
+    //             nickname = USERInfo.username;
+    //         }
+    //
+    //         //渲染消息
+    //         fillingMsg(message.type, message.content, headImg, nickname, position);
+    //     }
+    //
+    //     //dom滚动至底部
+    //     scrollToFooter('#chat-wrapper');
+    // });
 }
 
 /**
@@ -267,6 +285,8 @@ function websocket() {
         ws.send('{"type":"Friends","service":"UserService"}');
         //获取群列表
         ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
+        //获取聊天记录列表
+        ws.send('{"type":"List","service":"HistoryRecordService","content":""}')
     };
 
     //接收到消息时触发
@@ -532,6 +552,7 @@ function renderHistory() {
         }
 
         //按照时间戳排序
+
         data.sort(sortByField("date"))
 
         $('.user_list').html('');
@@ -558,7 +579,6 @@ function renderHistory() {
 function AppendHistoryHtml(user) {
     //获取时间
     const d = formatDateByTimeStamp(user.date)
-    console.log(user);
 
     //判断未读消息数大于0时，显示未读消息
     let unreadStatus = 'hidden';
