@@ -90,3 +90,24 @@ func (u *UserGroupMembersService) RemoveMember(data string) {
 
 	core.ResponseSocketMessage(u.conn, "RemoveMember", rsp.Msg)
 }
+
+//获取群成员
+func (u *UserGroupMembersService) GroupMembers(gid string) {
+	if gid == "" {
+		core.ResponseSocketMessage(u.conn, "err", "群id不能为空")
+		return
+	}
+
+	var (
+		list *userGroupMembers.MembersResponse
+		err  error
+	)
+	if list, err = u.membersRpc.Members(context.TODO(), &userGroupMembers.MembersRequest{
+		Gid: gid,
+	}); err != nil {
+		core.ResponseSocketMessage(u.conn, "err", err.Error())
+		return
+	}
+
+	core.ResponseSocketMessage(u.conn, "GroupMembers", list.Members)
+}

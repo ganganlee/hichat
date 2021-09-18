@@ -220,9 +220,10 @@ function chat(token,msgType) {
 
     //判断类型，获取额外信息
     //保存聊天对象
+    console.log(msgType);
     switch (msgType) {
         case 'groupMessage'://群聊
-            $('.extend').attr('onclick','GroupMembers()');
+            $('.extend').attr('onclick','GroupMembers("'+token+'")');
             break;
         case 'privateMessage'://私聊
             CHATInfo = FRIENDS[token];

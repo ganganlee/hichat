@@ -50,6 +50,8 @@ type UserGroupMembersService interface {
 	DelMembers(ctx context.Context, in *DelMembersRequest, opts ...client.CallOption) (*DelMembersResponse, error)
 	//获取群列表
 	MemberGroups(ctx context.Context, in *MemberGroupsRequest, opts ...client.CallOption) (*MemberGroupsResponse, error)
+	//获取群成员列表
+	Members(ctx context.Context, in *MembersRequest, opts ...client.CallOption) (*MembersResponse, error)
 }
 
 type userGroupMembersService struct {
@@ -104,6 +106,16 @@ func (c *userGroupMembersService) MemberGroups(ctx context.Context, in *MemberGr
 	return out, nil
 }
 
+func (c *userGroupMembersService) Members(ctx context.Context, in *MembersRequest, opts ...client.CallOption) (*MembersResponse, error) {
+	req := c.c.NewRequest(c.name, "UserGroupMembersService.Members", in)
+	out := new(MembersResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for UserGroupMembersService service
 
 type UserGroupMembersServiceHandler interface {
@@ -115,6 +127,8 @@ type UserGroupMembersServiceHandler interface {
 	DelMembers(context.Context, *DelMembersRequest, *DelMembersResponse) error
 	//获取群列表
 	MemberGroups(context.Context, *MemberGroupsRequest, *MemberGroupsResponse) error
+	//获取群成员列表
+	Members(context.Context, *MembersRequest, *MembersResponse) error
 }
 
 func RegisterUserGroupMembersServiceHandler(s server.Server, hdlr UserGroupMembersServiceHandler, opts ...server.HandlerOption) error {
@@ -123,6 +137,7 @@ func RegisterUserGroupMembersServiceHandler(s server.Server, hdlr UserGroupMembe
 		DelByMemberId(ctx context.Context, in *DelByMemberIdRequest, out *DelByMemberIdResponse) error
 		DelMembers(ctx context.Context, in *DelMembersRequest, out *DelMembersResponse) error
 		MemberGroups(ctx context.Context, in *MemberGroupsRequest, out *MemberGroupsResponse) error
+		Members(ctx context.Context, in *MembersRequest, out *MembersResponse) error
 	}
 	type UserGroupMembersService struct {
 		userGroupMembersService
@@ -149,4 +164,8 @@ func (h *userGroupMembersServiceHandler) DelMembers(ctx context.Context, in *Del
 
 func (h *userGroupMembersServiceHandler) MemberGroups(ctx context.Context, in *MemberGroupsRequest, out *MemberGroupsResponse) error {
 	return h.UserGroupMembersServiceHandler.MemberGroups(ctx, in, out)
+}
+
+func (h *userGroupMembersServiceHandler) Members(ctx context.Context, in *MembersRequest, out *MembersResponse) error {
+	return h.UserGroupMembersServiceHandler.Members(ctx, in, out)
 }

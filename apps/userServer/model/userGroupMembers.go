@@ -53,3 +53,13 @@ func (u *UserGroupMembersModel) MemberGroups(uuid string) (list []UserGroupMembe
 
 	return list, nil
 }
+
+//获取群成员列表
+func (u *UserGroupMembersModel) Members(gid string) (list []UserGroupMembers, err error) {
+	list = make([]UserGroupMembers, 0)
+	if err = u.engine.Where("group_id=?", gid).Cols("user_id").Find(&list); err != nil {
+		return nil, err
+	}
+
+	return list, nil
+}

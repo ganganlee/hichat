@@ -7,7 +7,7 @@ message Member {
   string uuid = 2;
 }
 
-message User{
+message MemberUser{
   string uuid = 1;
   string username = 2;
   string avatar = 3;
@@ -52,7 +52,7 @@ message MembersRequest{
   string gid = 1;
 }
 message MembersResponse{
-  repeated User members = 1;
+  repeated MemberUser members = 1;
 }
 
 service UserGroupMembersService{

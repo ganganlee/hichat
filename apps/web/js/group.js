@@ -81,12 +81,64 @@ function Groups(data) {
     dom.append(html);
 }
 
-//获取群成员
+/**
+ * 获取群成员
+ * @param data
+ * @returns {boolean}
+ * @constructor
+ */
 function GroupMembers(data){
-    if (typeof data === "undefined"){
+    if (typeof data === "string"){
         //发送获取群成员请求
-        console.log("获取群成员");
-        // ws.send();
+        ws.send('{"type":"GroupMembers","service":"UserGroupMemberService","content":"'+data+'"}')
+        $('#sidebar-tool').fadeIn();
         return false;
     }
+
+    if(data.length === 0){
+        return  false;
+    }
+
+    console.log(data);
+    let users = [];
+    let html = '';
+    for(let i in data){
+        let item  = data[i];
+        users.push(item.uuid);
+        html += `
+            <li class="sidebar-user-item">
+                <img src="${item.avatar}" alt="">
+                <p>${item.username}</p>
+            </li>
+        `;
+    }
+    $('.sidebar-users .add-member').before(html)
+
+    const groupInfo = GROUPS[CHATInfo.uuid];
+    //设置群名
+    $('.sidebar-group-name').html(CHATInfo.username+'<span> > </span>')
+    //设置群描述
+    // $('.sidebar-group-description').text(CHATInfo+'')
+
+    //添加好友元素
+    let friendHtml = '';
+    for(let i in FRIENDS){
+        let item = FRIENDS[i];
+        if(users.indexOf(item.uuid) !== -1){
+            continue;
+        }
+        friendHtml += `
+            <li>
+                <p class="select">
+                    <input type="checkbox" value="${item.uuid}">
+                </p>
+                <div class="user-wrapper">
+                    <img src="${item.avatar}" alt="">
+                    <p>${item.username}</p>
+                </div>
+            </li>
+        `;
+    }
+    $('.sidebar-users-wrapper ul').html(friendHtml);
 }
+

@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/go-playground/validator/v10"
 	"hichat.zozoo.net/apps/userServer/service"
@@ -103,5 +104,38 @@ func (u *GroupMembersRpc) MemberGroups(ctx context.Context, res *userGroupMember
 	}
 
 	rsp.Groups = list
+	return nil
+}
+
+//获取群成员
+func (u *GroupMembersRpc) Members(ctx context.Context, res *userGroupMembers.MembersRequest, rsp *userGroupMembers.MembersResponse) error {
+	var (
+		err  error
+		list map[string]string
+		user *userGroupMembers.MemberUser
+		data []*userGroupMembers.MemberUser
+	)
+
+	if res.Gid == "" {
+		return errors.New("缺少群id参数")
+	}
+
+	if list, err = u.service.Members(res.Gid); err != nil {
+		return err
+	}
+
+	data = make([]*userGroupMembers.MemberUser, 0)
+	//将数据格式化
+	for _, val := range list {
+
+		user = new(userGroupMembers.MemberUser)
+		if err = json.Unmarshal([]byte(val), user); err != nil {
+			continue
+		}
+		data = append(data, user)
+	}
+
+	rsp.Members = data
+
 	return nil
 }
