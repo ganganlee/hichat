@@ -185,7 +185,7 @@
                 <p class="sidebar-header"><span onclick="$('#sidebar-tool').fadeOut()">关闭</span></p>
                 <div class="sidebar-users">
                     <ul>
-                        <li class="add-member" onclick="$('.sidebar-users-wrapper').fadeIn()">＋</li>
+                        <li class="add-member" onclick="showAddMembersDom(event)">＋</li>
                     </ul>
                     <p class="show-all-members">查看更多成员></p>
                 </div>
@@ -196,7 +196,8 @@
                     </div>
                     <div class="sidebar-item-wrapper">
                         <p>群聊公告</p>
-                        <p class="sidebar-group-description">学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群 <span> > </span></p>
+                        <p class="sidebar-group-description">学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群
+                            <span> > </span></p>
                     </div>
                 </div>
                 <div class="sidebar-info">
@@ -205,7 +206,7 @@
             </div>
             <div class="sidebar-users-wrapper">
                 <ul></ul>
-                <div class="push-group-member" onclick="$('.sidebar-users-wrapper').fadeOut()">完成(10)</div>
+                <div class="push-group-member" onclick="addMembers()">完成(0)</div>
             </div>
         </div>
     </div>

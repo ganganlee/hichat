@@ -923,12 +923,30 @@ iframe{
 	height: 60px;
 	margin-right: 15px;
 	margin-bottom: 15px;
+	position: relative;
+}
+#sidebar-tool .sidebar-users li:hover i {
+	display: block;
 }
 #sidebar-tool .sidebar-users li img{
 	width: 40px;
 	height: 40px;
 	object-fit: cover;
 	border-radius: 3px;
+}
+#sidebar-tool .sidebar-users li i{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0,0,0,0.6);
+	color: #fff;
+	text-align: center;
+	line-height: 60px;
+	cursor: pointer;
+	border-radius: 3px;
+	display: none;
 }
 #sidebar-tool .sidebar-users ul{
 	display: flex;

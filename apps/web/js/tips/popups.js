@@ -44,34 +44,34 @@ function jqalert(param) {
     $("body").append(htm);
     var al = $("#jq-alert");
     al.on("click", '[data-role="cancel"]',
-        function() {
+        function () {
             al.remove();
             if (nofn) {
-                param.nofn();
+                param.nofn(event);
                 nofn = ""
             }
             param = {}
         });
     $(document).delegate(".alert", "click",
-        function(event) {
+        function (event) {
             event.stopPropagation()
         });
     $(document).delegate("#yes_btn", "click",
-        function() {
-            setTimeout(function() {
+        function () {
+            setTimeout(function () {
                     al.remove()
                 },
                 300);
             if (yesfn) {
-                param.yesfn();
+                param.yesfn(event);
                 yesfn = ""
             }
             param = {}
         });
     if (click_bg === true) {
         $(document).delegate("#jq-alert", "click",
-            function() {
-                setTimeout(function() {
+            function () {
+                setTimeout(function () {
                         al.remove()
                     },
                     300);
@@ -81,6 +81,7 @@ function jqalert(param) {
             })
     }
 }
+
 function jqtoast(text, sec) {
     var _this = text;
     var this_sec = sec;
@@ -100,8 +101,8 @@ function jqtoast(text, sec) {
     if (!sec) {
         this_sec = 2000
     }
-    setTimeout(function() {
-            $(".jq-toast").fadeOut(function() {
+    setTimeout(function () {
+            $(".jq-toast").fadeOut(function () {
                 $(this).remove()
             });
             _this = ""

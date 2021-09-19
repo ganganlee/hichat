@@ -116,6 +116,7 @@ func (u *UserGroupMembersService) AppendMember(res *AddMemberRequest) (err error
 		Username: userRsp.User.Username,
 		Avatar:   userRsp.User.Avatar,
 	}
+
 	if b, err = json.Marshal(memberInfo); err != nil {
 		return err
 	}
@@ -231,12 +232,14 @@ func (u *UserGroupMembersService) Members(gid string) (m map[string]string, err 
 	//循环列表，将数据加入到缓存中
 	for _, val := range list {
 		wg.Add(1)
-		//并发执行程序
-		go func() {
 
+		//并发执行程序
+		go func(res model.UserGroupMembers) {
+			defer wg.Done()
 			//调用rpc方法获取用户信息
+
 			userRsp, userErr := u.userRpc.FindByUuid(context.TODO(), &user.FindByUuidRequest{
-				Uuid: val.UserId,
+				Uuid: res.UserId,
 			})
 			if userErr != nil {
 				return
@@ -254,12 +257,12 @@ func (u *UserGroupMembersService) Members(gid string) (m map[string]string, err 
 			if b, err = json.Marshal(memberInfo); err != nil {
 				return
 			}
+
 			core.CLusterClient.HSet(membersKey, memberInfo.Uuid, string(b))
 
 			//将信息加入到全局变量中，需要返回
 			data[memberInfo.Uuid] = string(b)
-			wg.Done()
-		}()
+		}(val)
 	}
 
 	wg.Wait()

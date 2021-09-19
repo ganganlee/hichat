@@ -52,42 +52,42 @@ function render() {
  */
 function friends(friends) {
 
-        let friendList = {
-            '*': [],
-            'A': [],
-            'B': [],
-            'C': [],
-            'D': [],
-            'E': [],
-            'F': [],
-            'G': [],
-            'H': [],
-            'I': [],
-            'J': [],
-            'K': [],
-            'L': [],
-            'M': [],
-            'N': [],
-            'O': [],
-            'P': [],
-            'Q': [],
-            'R': [],
-            'S': [],
-            'T': [],
-            'U': [],
-            'V': [],
-            'W': [],
-            'X': [],
-            'Y': [],
-            'Z': [],
-            '#': [],
-        };
+    let friendList = {
+        '*': [],
+        'A': [],
+        'B': [],
+        'C': [],
+        'D': [],
+        'E': [],
+        'F': [],
+        'G': [],
+        'H': [],
+        'I': [],
+        'J': [],
+        'K': [],
+        'L': [],
+        'M': [],
+        'N': [],
+        'O': [],
+        'P': [],
+        'Q': [],
+        'R': [],
+        'S': [],
+        'T': [],
+        'U': [],
+        'V': [],
+        'W': [],
+        'X': [],
+        'Y': [],
+        'Z': [],
+        '#': [],
+    };
 
-        //循环列表，渲染好友数据
-        for (let i in friends) {
-            let friend = friends[i];
-            FRIENDS[friend['uuid']] = friend;
-            let html = `
+    //循环列表，渲染好友数据
+    for (let i in friends) {
+        let friend = friends[i];
+        FRIENDS[friend['uuid']] = friend;
+        let html = `
                 <div 
                 oncontextmenu="customMenu(event,'${friend['uuid']}','friend')" 
                 id="friend-${friend['uuid']}}" 
@@ -99,10 +99,10 @@ function friends(friends) {
                     </div>
                 </div>
             `;
-            let py = getPy(friend['username']);
-            if (!friend.hasOwnProperty('status') || friend.status === 0) {
-                py = ['*'];
-                html = `
+        let py = getPy(friend['username']);
+        if (!friend.hasOwnProperty('status') || friend.status === 0) {
+            py = ['*'];
+            html = `
                     <div 
                     oncontextmenu="friendApprove('${friend['uuid']}','${friend.username}',this)" 
                     id="friend-${friend['uuid']}}" 
@@ -114,59 +114,59 @@ function friends(friends) {
                         </div>
                     </div>
                 `;
-            }
-
-            friendList[py[0]].push(html);
         }
 
-        let html = '';
-        for (let i in friendList) {
+        friendList[py[0]].push(html);
+    }
 
-            //判断数据是否存在
-            if (friendList[i].length === 0) {
-                continue;
-            }
+    let html = '';
+    for (let i in friendList) {
 
-            let title = i;
-            if (i === '*') {
-                title = '好友申请';
-            }
+        //判断数据是否存在
+        if (friendList[i].length === 0) {
+            continue;
+        }
 
-            html += `
+        let title = i;
+        if (i === '*') {
+            title = '好友申请';
+        }
+
+        html += `
                 <li>
                     <p>${title}</p>
                     ${friendList[i].join('')}
                 </li>
             `;
-        }
+    }
 
-        //渲染好友列表
-        $('.friends_list').html(html);
+    //渲染好友列表
+    $('.friends_list').html(html);
 
-        //判断是否存在好友申请，存在时添加角标
-        if (friendList['*'].length > 0) {
-            let l = friendList['*'].length;
-            $('#si_2 span').text(l);
-            $('#si_2 span').show();
-        }else {
-            $('#si_2 span').hide();
-        }
+    //判断是否存在好友申请，存在时添加角标
+    if (friendList['*'].length > 0) {
+        let l = friendList['*'].length;
+        $('#si_2 span').text(l);
+        $('#si_2 span').show();
+    } else {
+        $('#si_2 span').hide();
+    }
 
-        //获取群列表
-        // groupList();
+    //获取群列表
+    // groupList();
 
-        //获取历史聊天列表
-        // renderHistory();
+    //获取历史聊天列表
+    // renderHistory();
 }
 
 /**
  * 开始聊天
  * @param userInfo
  */
-function chat(token,msgType) {
+function chat(token, msgType) {
 
     //设置聊天类型，1 私聊，2 群聊
-    $('#send').data('chatType',msgType);
+    $('#send').data('chatType', msgType);
 
     //修改title
     $('title').text('微聊');
@@ -188,15 +188,15 @@ function chat(token,msgType) {
             msg: "",
             token: token,
             unread: 0,
-            avatar:CHATInfo.avatar,
-            username:CHATInfo.username
+            avatar: CHATInfo.avatar,
+            username: CHATInfo.username
         };
 
         HistoryList[token] = res;
         AppendHistoryHtml(res);
 
         //将消息加入到缓存
-        ws.send('{"type":"SetHistoryRecord","service":"HistoryRecordService","content":"{\\"type\\":\\"'+msgType+'\\",\\"id\\":\\"'+token+'\\"}"}')
+        ws.send('{"type":"SetHistoryRecord","service":"HistoryRecordService","content":"{\\"type\\":\\"' + msgType + '\\",\\"id\\":\\"' + token + '\\"}"}')
     }
 
     //设置聊天dom的用户信息
@@ -223,7 +223,7 @@ function chat(token,msgType) {
     console.log(msgType);
     switch (msgType) {
         case 'groupMessage'://群聊
-            $('.extend').attr('onclick','GroupMembers("'+token+'")');
+            $('.extend').attr('onclick', 'GroupMembers("' + token + '",event)');
             break;
         case 'privateMessage'://私聊
             CHATInfo = FRIENDS[token];
@@ -295,18 +295,18 @@ function websocket() {
         let data = JSON.parse(evt.data);
         console.log(data);
         //数据操作是失败！
-        if(data.type === 'err'){
+        if (data.type === 'err') {
             jqtoast(data.result);
             return;
         }
 
         //数据操作成功提示，没有其他操作
-        if(data.type === 'success'){
+        if (data.type === 'success') {
             jqtoast(data.result)
             return;
         }
 
-        eval(data.type+'(data.result)');
+        eval(data.type + '(data.result)');
         return;
 
         $('iframe').remove();
@@ -503,19 +503,19 @@ function sendMsg(type) {
     let chatType = $('#send').data('chatType');
 
     //定义聊天类型
-    let data ={
-        type : $('#send').data('chatType'),
-        content : JSON.stringify(content)
+    let data = {
+        type: $('#send').data('chatType'),
+        content: JSON.stringify(content)
     };
 
     //发送数据
     ws.send(JSON.stringify(data));
 
     //清空输入框
-    setTimeout(function (){
+    setTimeout(function () {
         $('#input_box').html('');
         $('#input_box div').remove();
-    },100)
+    }, 100)
 
     //添加样式
     fillingMsg(type, msg, USERInfo['head_img'], USERInfo['username']);
@@ -667,7 +667,7 @@ function searchUser() {
         return;
     }
 
-    ws.send('{"type":"FindByName","service":"UserService","content":"'+val+'"}');
+    ws.send('{"type":"FindByName","service":"UserService","content":"' + val + '"}');
 }
 
 /**
@@ -733,7 +733,7 @@ function addUser() {
     }
 
     const token = $('#friends-hook .active').data('token');
-    ws.send('{"type":"ApplyFriend","service":"UserService","content":"'+token +'"}');
+    ws.send('{"type":"ApplyFriend","service":"UserService","content":"' + token + '"}');
     changeModalStatus('#friends-hook', 'hide');
 }
 
@@ -752,24 +752,24 @@ function friendApprove(token, username, el) {
         notext: '拒绝',
         yesfn: function () {
             //同意
-            ws.send('{"type":"ApproveFriend","service":"UserService","content":"'+token+'"}');
+            ws.send('{"type":"ApproveFriend","service":"UserService","content":"' + token + '"}');
             //增加提示
-            setTimeout(function (){
+            setTimeout(function () {
                 ws.send('{"type":"Friends","service":"UserService"}')
-            },1500);
+            }, 1500);
             return false;
         },
         nofn: function () {
             //拒绝
-            ws.send('{"type":"RefuseFriend","service":"UserService","content":"'+token+'"}');
+            ws.send('{"type":"RefuseFriend","service":"UserService","content":"' + token + '"}');
             //增加提示
-            setTimeout(function (){
+            setTimeout(function () {
                 ws.send('{"type":"Friends","service":"UserService"}')
-            },1500);
+            }, 1500);
         }
     });
 
-    document.oncontextmenu = function(e){
+    document.oncontextmenu = function (e) {
         return false;
     };
 }
@@ -1014,6 +1014,8 @@ let userHeadImgModel = $(".user-head-img-model");
 document.onclick = function (event) {
     $('#cursor').hide();
     userHeadImgModel.hide();
+    $('.sidebar-users-wrapper').fadeOut();
+    $('#sidebar-tool').fadeOut()
 }
 userHeadImgModel.bind("click", function (event) {
     event = event || window.event;

@@ -21,10 +21,10 @@ function HistoryRecord(data){
         switch (item.message_type) {
             case 'groupMessage':
                 info = GROUPS[item.id]
-                console.log(item.id);
-                console.log(info);
-                console.log(GROUPS);
-
+                if(!GROUPS.hasOwnProperty(item.id)){
+                    //需要删除聊天列表
+                    continue;
+                }
                 username = info.username;
                 avatar  = info.avatar;
                 break;

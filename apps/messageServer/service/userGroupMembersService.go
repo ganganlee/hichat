@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry"
@@ -42,15 +43,31 @@ func NewUserGroupMembersService(conn *websocket.Conn, uuid string) *UserGroupMem
 }
 
 //添加群成员
-func (u *UserGroupMembersService) AddMember(gid string) {
+func (u *UserGroupMembersService) AddMember(str string) {
+
 	var (
-		res = &userGroupMembers.AddMemberRequest{
-			Gid:  gid,
-			Uuid: u.uuid,
-		}
-		err error
-		rsp *userGroupMembers.AddMemberResponse
+		addRequest *RemoveMemberRequest
+		res        *userGroupMembers.AddMemberRequest
+		err        error
+		rsp        *userGroupMembers.AddMemberResponse
+		validate   = validator.New()
 	)
+
+	addRequest = new(RemoveMemberRequest)
+	if err = json.Unmarshal([]byte(str), addRequest); err != nil {
+		core.ResponseSocketMessage(u.conn, "err", err.Error())
+		return
+	}
+	if err = validate.Struct(addRequest); err != nil {
+		core.ResponseSocketMessage(u.conn, "err", err.Error())
+		return
+	}
+
+	//赋值请求参数
+	res = &userGroupMembers.AddMemberRequest{
+		Gid:  addRequest.Gid,
+		Uuid: addRequest.Uuid,
+	}
 
 	if rsp, err = u.membersRpc.AddMember(context.TODO(), res); err != nil {
 		core.ResponseSocketMessage(u.conn, "err", core.DecodeRpcErr(err.Error()).Error())
@@ -68,11 +85,18 @@ func (u *UserGroupMembersService) RemoveMember(data string) {
 		err       error
 		rsp       *userGroupMembers.DelByMemberIdResponse
 		removeRes *RemoveMemberRequest
+		validate = validator.New()
 	)
 
 	//将字符串转换为对象
 	removeRes = new(RemoveMemberRequest)
 	if err = json.Unmarshal([]byte(data), removeRes); err != nil {
+		core.ResponseSocketMessage(u.conn, "err", err.Error())
+		return
+	}
+
+	//验证数据
+	if err = validate.Struct(removeRes);err != nil {
 		core.ResponseSocketMessage(u.conn, "err", err.Error())
 		return
 	}
