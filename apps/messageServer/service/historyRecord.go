@@ -119,3 +119,22 @@ func (h *HistoryRecord) PushHistoryRecord(uuid string, key string, val *HistoryM
 	err = core.CLusterClient.HSet(redisKey, key, string(b)).Err()
 	fmt.Println(err)
 }
+
+//根据id从聊天列表中删除消息
+func (h *HistoryRecord) RemoveHistoryRecord(id string) {
+	var (
+		err      error
+		redisKey string
+	)
+
+	if id == "" {
+		core.ResponseSocketMessage(h.conn, "err", "消息id不能为空")
+		return
+	}
+
+	redisKey = "historyRecord:uuid:" + h.uuid + ":hash"
+	if err = core.CLusterClient.HDel(redisKey, id).Err(); err != nil {
+		core.ResponseSocketMessage(h.conn, "err", err.Error())
+		return
+	}
+}

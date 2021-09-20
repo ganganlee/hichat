@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry"
@@ -19,6 +21,13 @@ type (
 		Conn           *websocket.Conn                //用户长连接
 		userRpc        user.UserService               //用户rpc服务
 		userFriendsRpc userFriends.UserFriendsService //用户好友rpc服务
+	}
+
+	//修改用户信息结构体
+	UpdateUserRequest struct {
+		Username string `json:"username" validate:"required,min=3,max=25"`
+		Password string `json:"password" validate:"required,min=6,max=25"`
+		Avatar   string `json:"avatar" validate:"required,url"`
 	}
 )
 
@@ -163,4 +172,44 @@ func (u *UserService) Friends(val string) {
 
 	//返回好友列表
 	core.ResponseSocketMessage(u.Conn, "friends", rpcRsp.Friends)
+}
+
+//修改用户信息
+func (u *UserService) UpdateInfo(data string) {
+	var (
+		res      *UpdateUserRequest
+		rpcRes   *user.EditInfoRequest
+		rpcRsp   *user.EditInfoResponse
+		err      error
+		validate = validator.New()
+	)
+
+	res = new(UpdateUserRequest)
+	if err = json.Unmarshal([]byte(data), res); err != nil {
+		core.ResponseSocketMessage(u.Conn, "err", err.Error())
+		return
+	}
+
+	//参数验证
+	if err = validate.Struct(res); err != nil {
+		core.ResponseSocketMessage(u.Conn, "err", err.Error())
+		return
+	}
+
+	rpcRes = &user.EditInfoRequest{
+		User: &user.User{
+			Uuid:     u.Uuid,
+			Username: res.Username,
+			Password: res.Password,
+			Avatar:   res.Avatar,
+		},
+	}
+
+	//调用rpc方发
+	if rpcRsp, err = u.userRpc.EditInfo(context.TODO(), rpcRes); err != nil {
+		core.ResponseSocketMessage(u.Conn, "err", core.DecodeRpcErr(err.Error()))
+		return
+	}
+
+	core.ResponseSocketMessage(u.Conn, "UpdateUser", rpcRsp.Msg)
 }

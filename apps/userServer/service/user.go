@@ -97,7 +97,7 @@ func (u *UserService) Edit(editRequest *EditRequest) (err error) {
 	//赋值给结构体
 	user = &model.User{
 		Username: editRequest.Username,
-		Password: editRequest.Password,
+		Password: fmt.Sprintf("%x", md5.Sum([]byte(editRequest.Password))),
 		Avatar:   editRequest.Avatar,
 	}
 

@@ -708,7 +708,7 @@ function findUser(users) {
     }
 
     //渲染列表
-    $('#friends-hook .model-content').html(html);
+    $('#friends-hook .models-content').html(html);
 
     //展示模态框
     changeModalStatus('#friends-hook', 'show')
@@ -817,7 +817,6 @@ function upload(id, func) {
         },
         error: function (res) {
             remove_load();
-            console.log(res);
         }
     })
 }
@@ -854,40 +853,50 @@ function updateUserInfo() {
         jqtoast('未设置任何参数');
         return false;
     }
-    AjaxPost('/v1/user/updateInfo', {
-        "username": username,
-        "password": password,
-        "head_img": head_img
-    }, function (json) {
-        console.log(json);
-        if (json.code !== 200) {
-            jqtoast(json.msg);
-            return false;
-        }
 
-        jqtoast('操作成功！')
-        //关闭模态框
-        changeModalStatus('#update-info-hook', 'hide')
-        //重新获取用户数据
-        renderUserInfo();
-    });
+    const data = {
+        "type": "UpdateInfo",
+        "service": "UserService",
+        "content": JSON.stringify({
+            username: username,
+            password: password,
+            avatar: head_img
+        })
+    }
+
+    ws.send(JSON.stringify(data));
+}
+
+/**
+ * 修改信息成功回调方法
+ * @param msg
+ * @constructor
+ */
+function UpdateUser(msg) {
+    jqtoast(msg)
+    //关闭模态框
+    changeModalStatus('#update-info-hook', 'hide')
+    //重新获取用户数据
+    renderUserInfo();
 }
 
 /**
  * 展示用户信息
  */
 function showUserInfo(event) {
-    const model = $('.user-head-img-model');
+    event.stopPropagation();
+
+    const model = $('#update-info-hook');
     if (model.css('display') === 'none') {
-        model.show();
-        $('input[name=update-username]').val(USERInfo.username);
-        $('input[name=update-head-img]').val(USERInfo.head_img);
-        $('.show-user-img').attr('src', USERInfo['head_img']);
+        model.css('display', 'flex')
+        console.log(USERInfo);
+
+        $('input[name=update-username]').val(USERInfo.Username);
+        $('input[name=update-head-img]').val(USERInfo.Avatar);
+        $('.show-user-img').attr('src', USERInfo['Avatar']);
     } else {
         model.hide();
     }
-
-    event.stopPropagation();
 }
 
 /**
@@ -1010,7 +1019,7 @@ function delHistory(friendToken) {
 }
 
 // 鼠标点击其他位置时隐藏菜单
-let userHeadImgModel = $(".user-head-img-model");
+let userHeadImgModel = $(".user-head-img-models");
 document.onclick = function (event) {
     $('#cursor').hide();
     userHeadImgModel.hide();
