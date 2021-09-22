@@ -92,7 +92,7 @@ function friends(friends) {
                 oncontextmenu="customMenu(event,'${friend['uuid']}','friend')" 
                 id="friend-${friend['uuid']}}" 
                 class="friends_box" 
-                ondblclick="chat('${friend['uuid']}')">
+                ondblclick="chat('${friend['uuid']}',\'privateMessage\')">
                     <div class="user_head"><img src="${friend['avatar']}" alt=""></div>
                     <div class="friends_text">
                         <p class="user_name">${friend['username']}</p>
@@ -482,6 +482,8 @@ function sendMsg(type) {
     //关闭emoji模态框
     $('.emoji-wrapper').css('display', 'none');
 
+    ws.send('{"type":"SendMsg","service":"messageService","content":"123"}');
+    return false;
     //给type设置默认值
     if (typeof type === "undefined") {
         type = 1;
@@ -590,7 +592,7 @@ function AppendHistoryHtml(user) {
     let html = `
         <li 
         class="history-${user['token']}" 
-        ondblclick="chat('${user['token']}')"
+        ondblclick="chat('${user['token']}','${user.message_type}')"
         oncontextmenu="customMenu(event,'${user['token']}','history')">
             <div class="user_head">
                 <img src="${user['avatar']}" alt="">

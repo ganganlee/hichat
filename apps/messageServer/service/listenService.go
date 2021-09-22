@@ -135,7 +135,7 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 	case "HistoryRecordService": //用户历史消息相关
 		var (
 			history = NewHistoryRecord(Conns[uuid], uuid)
-			f             []reflect.Value
+			f       []reflect.Value
 		)
 
 		if f, err = core.CallFuncByName(history, clientMessage.Type, clientMessage.Content); err != nil {
@@ -146,33 +146,19 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 		//调用反射得到的方法
 		_ = f
 		break
-	case "groupMsg":
-		//群聊
-		//var (
-		//	rpcRes GroupMessage.MessageRequest
-		//	rsp    *Users.FindByTokenResponse
-		//)
-		//
-		////获取用户信息
-		//if rsp, err = m.userRpc.FindByToken(context.TODO(), &Users.FindByTokenRequest{Token: uuid}); err != nil {
-		//	return
-		//}
-		//
-		////将消息发送至群聊微服务，通过群聊微服务网关转发值所有用户
-		//rpcRes = GroupMessage.MessageRequest{
-		//	Token: msgRequest.ToToken,
-		//	Body: &GroupMessage.GroupBody{
-		//		Type:     msgRequest.Body.Type,
-		//		Content:  msgRequest.Body.Content,
-		//		Nickname: rsp.User.Username,
-		//		HeadImg:  rsp.User.HeadImg,
-		//		Token:    uuid,
-		//	},
-		//}
-		//
-		//if _, err = m.groupPrc.Send(context.TODO(), &rpcRes); err != nil {
-		//	log.Println(err)
-		//}
+	case "messageService":
+		var (
+			message = NewMessageService(Conns[uuid], uuid)
+			f       []reflect.Value
+		)
+
+		if f, err = core.CallFuncByName(message, clientMessage.Type, clientMessage.Content); err != nil {
+			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
+			return
+		}
+
+		//调用反射得到的方法
+		_ = f
 		break
 	default:
 		fmt.Println(clientMessage.Content)

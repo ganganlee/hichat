@@ -30,11 +30,6 @@ func main() {
 		log.Fatalf("读取配置文件失败 err:%v\n", err)
 	}
 
-	//连接数据库
-	if _, err = common.OrmConn(cfg); err != nil {
-		log.Fatalf("数据库连接失败 err:%v\n", err)
-	}
-
 	//连接redis
 	core.RedisClusterConn(cfg.Redis.Address, cfg.Redis.MaxActive, cfg.Redis.MinIdle, cfg.Redis.Password)
 

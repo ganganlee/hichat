@@ -23,6 +23,7 @@ require (
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/micro/go-micro/v2 v2.9.1
+	github.com/streadway/amqp v1.0.0
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tealeg/xlsx v1.0.5 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
