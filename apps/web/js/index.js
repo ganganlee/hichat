@@ -165,9 +165,6 @@ function friends(friends) {
  */
 function chat(token, msgType) {
 
-    //设置聊天类型，1 私聊，2 群聊
-    $('#send').data('chatType', msgType);
-
     //修改title
     $('title').text('微聊');
 
@@ -203,13 +200,14 @@ function chat(token, msgType) {
     //设置昵称
     $('#message-user').text(CHATInfo.username);
 
-    //情况聊天记录
+    //清空聊天记录
     $('#chat-wrapper').html('');
 
     //去除未读消息
     const dom = $(`.history-${token} .unread-message`);
     dom.text(0);
     dom.hide();
+    ws.send('{"type":"ClearUnread","service":"HistoryRecordService","content":"' + token + '"}');
 
     //增加当前列表聊天样式
     $('.user_list li').removeClass('user_active');
@@ -220,7 +218,6 @@ function chat(token, msgType) {
 
     //判断类型，获取额外信息
     //保存聊天对象
-    console.log(msgType);
     switch (msgType) {
         case 'groupMessage'://群聊
             $('.extend').attr('onclick', 'GroupMembers("' + token + '",event)');
@@ -230,45 +227,46 @@ function chat(token, msgType) {
             break;
     }
 
+    $('#send').data('msg_type', msgType);
 
     //获取聊天记录
-    // AjaxMsg('/v1/msg/history', {
-    //     "from_token": USERInfo.token,
-    //     "from_user_id": USERInfo.id,
-    //     "friend_token": CHATInfo.token,
-    //     "friend_user_id": CHATInfo.id,
-    //     "page": 1,
-    //     "page_size": 20
-    // }, function (json) {
-    //     if (json.code !== 200) {
-    //         jqtoast(json.msg);
-    //         return;
-    //     }
-    //     if (!json.result) {
-    //         return;
-    //     }
-    //
-    //     const data = json.result;
-    //     for (let i = data.length - 1; i >= 0; i--) {
-    //         let message = JSON.parse(data[i].message);
-    //
-    //         //判断接收者
-    //         let position = 'other';
-    //         let headImg = CHATInfo.head_img;
-    //         let nickname = CHATInfo.username;
-    //         if (message.receive_token === CHATInfo.token) {
-    //             position = 'me';
-    //             headImg = USERInfo.head_img;
-    //             nickname = USERInfo.username;
-    //         }
-    //
-    //         //渲染消息
-    //         fillingMsg(message.type, message.content, headImg, nickname, position);
-    //     }
-    //
-    //     //dom滚动至底部
-    //     scrollToFooter('#chat-wrapper');
-    // });
+    ws.send('{"type":"HistoryInfo","service":"HistoryRecordService","content":"' + token + '"}');
+}
+
+/**
+ * 渲染聊天内容
+ * @param list
+ * @constructor
+ */
+function HistoryInfo(data) {
+    for (let i = data.length - 1; i >= 0; i--) {
+        let message = JSON.parse(data[i]);
+
+        //判断接收者
+        let position = 'other';
+        let avatar = CHATInfo.avatar;
+        let username = CHATInfo.username;
+        if (message.uuid === USERInfo.Uuid) {
+            position = 'me';
+            avatar = USERInfo.Avatar;
+            username = USERInfo.Username;
+        }
+
+        //渲染消息
+        fillingMsg(message.content_type, message.content, avatar, username, position);
+    }
+
+    //dom滚动至底部
+    scrollToFooter('#chat-wrapper');
+}
+
+/**
+ * 接收发送消息返回的状态
+ * @param msg
+ * @constructor
+ */
+function SendStatus(msg) {
+    console.log(msg);
 }
 
 /**
@@ -287,7 +285,7 @@ function websocket() {
         //获取群列表
         ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
         //获取聊天记录列表
-        ws.send('{"type":"List","service":"HistoryRecordService","content":""}')
+        ws.send('{"type":"List","service":"HistoryRecordService","content":""}');
     };
 
     //接收到消息时触发
@@ -308,45 +306,6 @@ function websocket() {
 
         eval(data.type + '(data.result)');
         return;
-
-        $('iframe').remove();
-        //音频提示
-        //messageAudio.play();
-        let iframe = document.createElement('iframe');
-        iframe.src = "/media/message.mp3";
-        document.body.appendChild(iframe);
-
-        //判断当前用户是否在聊天列表，不在聊天列表则添加
-        if (!HistoryList[data.token]) {
-            let res = {
-                date: (new Date().getTime()) * 1000000,
-                msg: data.body.content,
-                token: data.token,
-                unread: 1
-            };
-            HistoryList[data.token] = res;
-            AppendHistoryHtml(res);
-            //增加未读消息
-            pushUnread(data.token);
-            return;
-        }
-
-        //判断当前的聊天对象是不是接收到消息的用户，如果不是，则增加角标
-        if (CHATInfo.token !== data.token) {
-            setUnreadMessage(data.token, data.body.type, data.body.content);
-
-            //增加未读消息
-            pushUnread(data.token);
-            return;
-        }
-
-        fillingMsg(data.body.type, data.body.content, data.user.head_img, data.user.username, 'other')
-
-        //同步左边聊天列表
-        setUnreadMessage(data.token, data.body.type, data.body.content, true)
-
-        //dom滚动至底部
-        scrollToFooter('#chat-wrapper');
     };
 
     //连接关闭时触发
@@ -394,16 +353,16 @@ function setUnreadMessage(token, type, content, clear) {
     //将消息渲染到列表
     let message = '';
     switch (type) {
-        case 2:
+        case 'img':
             message = "[图片]"
             break
-        case 3:
+        case 'mp3':
             message = "[音频]"
             break
-        case 4:
+        case 'mp4':
             message = "[视频]"
             break
-        case 5:
+        case 'file':
             message = "[文件]"
             break
         default:
@@ -426,36 +385,36 @@ function setUnreadMessage(token, type, content, clear) {
  * @param nickname
  * @param position
  */
-function fillingMsg(type, content, headImg, nickname, position) {
+function fillingMsg(type, content, avatar, username, position) {
 
-    //判断type不等于1时说明消息为非文本消息，需要将消息解析对对象
-    if (type !== 1) {
-        content = JSON.parse(content);
-        switch (type) {
-            case 2://图片
-                content = `<img src="${UPLOADAPI + content.path}" alt="${content.name}" style="max-width: 200px"/>`;
-
-                break;
-            case 3://音频
-                content = `
-                    <audio src="${UPLOADAPI + content.path}" controls="controls" style="width: 200px">
-                        您的浏览器不支持 audio 标签。
-                    </audio>
-                `;
-                break;
-            case 4://视频
-                content = `
-                    <video src="${UPLOADAPI + content.path}" controls="controls" style="max-width: 200px">
-                        您的浏览器不支持
-                    </video>
-                `;
-                break;
-            default://文件
-                content = `
-                    <a href="${UPLOADAPI + content.path}" download>${content.name}</a>
-                `;
-                break;
-        }
+    //判断type类型，需要将消息解析对对象
+    switch (type) {
+        case 'img':
+            content = JSON.parse(content);
+            content = `<img src="${UPLOADAPI + content.path}" alt="${content.name}" style="max-width: 200px"/>`;
+            break;
+        case 'mp3'://音频
+            content = JSON.parse(content);
+            content = `
+                <audio src="${UPLOADAPI + content.path}" controls="controls" style="width: 200px">
+                    您的浏览器不支持 audio 标签。
+                </audio>
+            `;
+            break;
+        case 'mp4'://视频
+            content = JSON.parse(content);
+            content = `
+                <video src="${UPLOADAPI + content.path}" controls="controls" style="max-width: 200px">
+                    您的浏览器不支持
+                </video>
+            `;
+            break;
+        case 'file'://文件
+            content = JSON.parse(content);
+            content = `
+                <a href="${UPLOADAPI + content.path}" download>${content.name}</a>
+            `;
+            break;
     }
 
     if (typeof position === "undefined") {
@@ -464,7 +423,7 @@ function fillingMsg(type, content, headImg, nickname, position) {
 
     let msg = `
         <li class="${position}">
-            <img src="${headImg}" title="${nickname}">
+            <img src="${avatar}" title="${username}">
             <span>${content}</span>
         </li>
     `;
@@ -474,56 +433,52 @@ function fillingMsg(type, content, headImg, nickname, position) {
 
 /**
  * 发送消息
- * @param type
  * @returns {boolean}
  */
-function sendMsg(type) {
+function sendMsg() {
+
+    //判断是否选择聊天对象
+    if (Object.keys(CHATInfo).length === 0) {
+        jqtoast('请先选择聊天对象，再发送消息！');
+        $('#input_box').html('');
+        return false;
+    }
 
     //关闭emoji模态框
     $('.emoji-wrapper').css('display', 'none');
-
-    ws.send('{"type":"SendMsg","service":"messageService","content":"123"}');
-    return false;
-    //给type设置默认值
-    if (typeof type === "undefined") {
-        type = 1;
-    }
 
     let msg = $('#input_box').html();
     if (msg === '') {
         return false;
     }
 
-    let content = {
-        content: msg,
-        to_token: CHATInfo.token,
-        type: type,
-        receive_token: CHATInfo.token
-    };
-
-    //获取聊天类型
-    let chatType = $('#send').data('chatType');
-
+    const contentType = $('#send').data('content_type');
     //定义聊天类型
     let data = {
-        type: $('#send').data('chatType'),
-        content: JSON.stringify(content)
+        "type": "SendMsg",
+        "service": "messageService",
+        "content": JSON.stringify({
+            "id": CHATInfo.uuid,
+            "content": msg,
+            "content_type": contentType,
+            "msg_type": $('#send').data('msg_type'),
+        }),
     };
 
-    //发送数据
     ws.send(JSON.stringify(data));
 
     //清空输入框
     setTimeout(function () {
         $('#input_box').html('');
         $('#input_box div').remove();
+        $('#send').data('content_type', 'text')
     }, 100)
 
     //添加样式
-    fillingMsg(type, msg, USERInfo['head_img'], USERInfo['username']);
+    fillingMsg(contentType, msg, USERInfo.Avatar, USERInfo.Username);
 
     //将消息渲染到聊天列表
-    setUnreadMessage(CHATInfo.token, type, msg, true);
+    setUnreadMessage(CHATInfo.uuid, contentType, msg, true);
 
     //dom滚动至底部
     scrollToFooter('#chat-wrapper');
@@ -534,6 +489,14 @@ function sendMsg(type) {
  * @param event
  */
 function listenKeyDown(event) {
+
+    //判断是否选择聊天对象
+    if (Object.keys(CHATInfo).length === 0) {
+        jqtoast('请先选择聊天对象！');
+        $('#input_box').html('');
+        return false;
+    }
+
     if (event.keyCode === 13) {
         sendMsg();
     }
@@ -587,6 +550,21 @@ function AppendHistoryHtml(user) {
     let unreadStatus = 'hidden';
     if (user.unread > 0) {
         unreadStatus = 'block';
+    }
+
+    switch (user.content_type) {
+        case 'img':
+            user.msg = '[图片]';
+            break;
+        case 'mp3'://音频
+            user.msg = '[音频]';
+            break;
+        case 'mp4'://视频
+            user.msg = '[视频]';
+            break;
+        case 'file'://文件
+            user.msg = '[文件]';
+            break;
     }
 
     let html = `
@@ -913,7 +891,10 @@ function handleChatUpload(data) {
     }
     message = JSON.stringify(message);
     $('#input_box').text(message);
-    sendMsg(TYPES[data.type]);
+
+    //设置文件类型
+    $('#send').data('content_type', data.type);
+    sendMsg();
 }
 
 /**
@@ -1041,9 +1022,9 @@ function pushUnread(token) {
     //修改网页title
     $('title').text('您有新消息 - 微聊');
 
-    AjaxMsg('/v1/msg/unread/' + token, '', (json) => {
-        console.log(json);
-    }, 'GET');
+    // AjaxMsg('/v1/msg/unread/' + token, '', (json) => {
+    //     console.log(json);
+    // }, 'GET');
 }
 
 /**
@@ -1057,4 +1038,60 @@ function logout() {
     delCookie('token');
     //将页面跳转至登录界面
     window.location.href = '/login.html';
+}
+
+/**
+ * 处理服务器发来的消息
+ * @param res
+ * @constructor
+ */
+function MqMsg(res) {
+    $('iframe').remove();
+    //音频提示
+    //messageAudio.play();
+    let iframe = document.createElement('iframe');
+    iframe.src = "/media/message.mp3";
+    document.body.appendChild(iframe);
+
+
+    //判断消息类型
+    if (res.msg_type === 'privateMessage') {
+        //私聊
+        //判断当前用户是否在聊天列表，不在聊天列表则添加
+        if (!HistoryList[res.from_id]) {
+            let res = {
+                date: (new Date().getTime()) * 1000000,
+                msg: res.content,
+                token: res.from_id,
+                unread: 0,
+                avatar: FRIENDS[res.from_id].avatar,
+                username: FRIENDS[res.from_id].username
+            };
+            HistoryList[res.from_id] = res;
+            AppendHistoryHtml(res);
+
+            //增加未读消息
+            pushUnread(res.token);
+            return;
+        }
+
+        //判断当前的聊天对象是不是接收到消息的用户，如果不是，则增加角标
+        if (CHATInfo.uuid !== res.from_id) {
+            setUnreadMessage(res.from_id, res.content_type, res.content);
+
+            //增加未读消息
+            pushUnread(res.from_id);
+            return;
+        }
+
+        fillingMsg(res.content_type, res.content, FRIENDS[res.from_id].avatar, FRIENDS[res.from_id].username, 'other')
+
+        //同步左边聊天列表
+        setUnreadMessage(res.from_id, res.content_type, res.content, true)
+
+        //dom滚动至底部
+        scrollToFooter('#chat-wrapper');
+
+        return;
+    }
 }

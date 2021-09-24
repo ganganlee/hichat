@@ -25,12 +25,14 @@ type (
 		Address   []string `json:"address"`
 	}
 	RpcServer struct {
-		UserRpc   string `json:"user_rpc"`
+		UserRpc    string `json:"user_rpc"`
+		GatewayRpc string `json:"gateway_rpc"`
 	}
 	Config struct {
 		Version    string    `json:"version"`
 		ServerName string    `json:"server_name"`
 		Host       string    `json:"host"`
+		MqHost     string    `json:"mq_host"`
 		RpcServer  RpcServer `json:"rpc_server"`
 		Etcd       Etcd      `json:"etcd"`
 		Mysql      Mysql     `json:"mysql"`

@@ -29,7 +29,7 @@ function HistoryRecord(data) {
                 avatar = info.avatar;
                 break;
             case 'privateMessage':
-                info = FRIENDS[item.id]
+                info = FRIENDS[item.id];
                 username = info.username;
                 avatar = info.avatar;
                 break;
@@ -45,10 +45,11 @@ function HistoryRecord(data) {
             date: (new Date(item.date).getTime()) * 1000000,
             msg: item.content,
             token: item.id,
-            unread: 0,
+            unread: item.unread,
             avatar: avatar,
             username: username,
-            message_type: item.message_type
+            message_type: item.message_type,
+            content_type: item.content_type
         };
 
         //将数据保存进入全局变量中

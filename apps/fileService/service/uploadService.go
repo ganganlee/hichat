@@ -92,7 +92,6 @@ func (u *UploadService) Upload(f *multipart.FileHeader, c *gin.Context) (rsp *Up
 		Size: uint16(f.Size),
 	}
 
-	fmt.Println(static)
 	//保存数据库
 	if err = u.model.Insert(static); err != nil {
 		return nil, err

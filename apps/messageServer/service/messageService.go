@@ -11,6 +11,7 @@ import (
 	"hichat.zozoo.net/apps/messageServer/common"
 	"hichat.zozoo.net/core"
 	gateway "hichat.zozoo.net/rpc/Gateway"
+	"time"
 )
 
 //消息服务
@@ -37,7 +38,7 @@ func NewMessageService(conn *websocket.Conn, uuid string) *MessageService {
 		service = micro.NewService(
 			micro.Registry(etcd.NewRegistry(registry.Addrs(common.AppCfg.Etcd.Host))),
 		)
-		gatewayRpc = gateway.NewGatewayService(common.AppCfg.RpcServer.UserRpc, service.Client())
+		gatewayRpc = gateway.NewGatewayService(common.AppCfg.RpcServer.GatewayRpc, service.Client())
 	)
 
 	return &MessageService{
@@ -53,8 +54,6 @@ func (m *MessageService) SendMsg(data string) {
 		err      error
 		res      *SendMsgRequest
 		validate = validator.New()
-		rpcRes   *gateway.SendMsgRequest
-		rpcRsp   *gateway.SendMsgResponse
 	)
 
 	res = new(SendMsgRequest)
@@ -71,19 +70,62 @@ func (m *MessageService) SendMsg(data string) {
 		return
 	}
 
+	//处理用户缓存
+	go m.handleCache(res)
+
+	//向gateway服务器发送消息
+	go m.sendMsgToGateway(res)
+
+	core.ResponseSocketMessage(m.conn, "SendStatus", "ok")
+}
+
+//增加用户消息缓存
+func (m *MessageService) handleCache(msg *SendMsgRequest) {
+	var (
+		//err            error
+		historyService = NewHistoryRecord(m.conn, m.uuid)
+		historyMsg     *HistoryMessage
+		t              = time.Now()
+	)
+
+	//添加缓存逻辑，需要修改自己和对方两处缓存，
+	//1、将聊天列表的缓存消息覆盖为当前信息；
+	historyMsg = &HistoryMessage{
+		Id:          msg.Id,                          //好友id
+		MessageType: msg.MsgType,                     //消息类型
+		ContentType: msg.ContentType,                 //消息内容类型
+		Content:     msg.Content,                     //消息内容
+		Date:        t.Format("2006-01-02 15:04:05"), //时间
+		Uuid:        m.uuid,                          //发送消息的用户uuid
+	}
+
+	//添加自己的不需要添加未读数量，对方需要添加未读数量
+	historyService.PushHistoryRecord(m.uuid, msg.Id, historyMsg, false)
+
+	//添加对方需要添加未读数量
+	historyMsg.Id = m.uuid
+	historyService.PushHistoryRecord(msg.Id, m.uuid, historyMsg, true)
+}
+
+//将消息发送至gateway服务器
+func (m *MessageService) sendMsgToGateway(res *SendMsgRequest) {
+	//判断用户登录状态，如果登录则向网关发送消息
+	var (
+		rpcRes *gateway.SendMsgRequest
+		err    error
+	)
+
 	//组织请求rpc方法参数
 	rpcRes = &gateway.SendMsgRequest{
-		FromId:      res.FromId,
+		FromId:      m.uuid,
 		ToId:        res.Id,
 		MsgType:     res.MsgType,
 		ContentType: res.ContentType,
 		Content:     res.Content,
 	}
 
-	if rpcRsp, err = m.gatewayRpc.SendMsg(context.TODO(), rpcRes); err != nil {
-		core.ResponseSocketMessage(m.conn, "err", core.DecodeRpcErr(err.Error()))
+	if _, err = m.gatewayRpc.SendMsg(context.TODO(), rpcRes); err != nil {
+		core.ResponseSocketMessage(m.conn, "err", core.DecodeRpcErr(err.Error()).Error())
 		return
 	}
-
-	core.ResponseSocketMessage(m.conn, "SendStatus", rpcRsp.Msg)
 }

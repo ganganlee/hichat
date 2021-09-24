@@ -1,6 +1,9 @@
 package service
 
 import (
+	"encoding/json"
+	"errors"
+	"github.com/streadway/amqp"
 	"hichat.zozoo.net/apps/gatewayServer/common"
 	"hichat.zozoo.net/apps/gatewayServer/models"
 	"hichat.zozoo.net/core"
@@ -22,7 +25,9 @@ type (
 )
 
 func NewGatewayService(m *models.MessageModel) *GatewayService {
-	return &GatewayService{}
+	return &GatewayService{
+		m,
+	}
 }
 
 //发送消息到网关
@@ -30,8 +35,9 @@ func (g *GatewayService) SendMsg(res *SendMsgRequest) (err error) {
 	var (
 		msg       *models.Message
 		tableName string
-		redisKey  string
-		mqHost    string //mq服务器host
+
+		redisKey = "user:mqHost:uuid:" + res.ToId + ":string:"
+		mqHost   = core.CLusterClient.Get(redisKey).Val()
 	)
 
 	msg = &models.Message{
@@ -56,12 +62,34 @@ func (g *GatewayService) SendMsg(res *SendMsgRequest) (err error) {
 	}
 
 	//判断用户是否登录，登陆时将消息发送至mq队列中
-	redisKey = "hichat_user:loginStatus:uuid:" + res.ToId + ":string"
+	redisKey = "user:mqHost:uuid:" + res.ToId + ":string:"
 	if mqHost = core.CLusterClient.Get(redisKey).Val(); mqHost == "" {
 		//未登录，直接返回
 		return nil
 	}
 
-	//用户是登录状态，可以发送mq消息
+	//将消息发送至rabbitMq
+	var (
+		mqList = common.MqQueue
+		mq     *amqp.Channel
+		exist  bool
+		b      []byte
+	)
+
+	//判断当前mq是否存在
+	if mq, exist = mqList[mqHost]; !exist {
+		return errors.New(mqHost + "消息队列主机未链接")
+	}
+
+	//将对象转为字符切片
+	if b, err = json.Marshal(msg); err != nil {
+		return err
+	}
+
+	//将消息发送至mq队列中
+	if err = common.Publish(mq, b); err != nil {
+		return err
+	}
+
 	return err
 }

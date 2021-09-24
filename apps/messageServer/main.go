@@ -33,6 +33,9 @@ func main() {
 	//连接redis
 	core.RedisClusterConn(cfg.Redis.Address, cfg.Redis.MaxActive, cfg.Redis.MinIdle, cfg.Redis.Password)
 
+	//连接RabbitMq
+	common.InitRabbitMq(cfg)
+
 	//启动框架，注册路由
 	r := gin.Default()
 

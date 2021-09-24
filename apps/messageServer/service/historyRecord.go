@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"hichat.zozoo.net/core"
 	"time"
@@ -84,12 +83,11 @@ func (h *HistoryRecord) SetHistoryRecord(content string) {
 
 //将消息加入到聊天列表缓存中
 func (h *HistoryRecord) PushHistoryRecord(uuid string, key string, val *HistoryMessage, addUnread bool) {
-	var redisKey = "historyRecord:uuid:" + uuid + ":hash"
-
 	var (
-		unread uint = 0
-		err    error
-		b      []byte
+		redisKey      = "historyRecord:uuid:" + uuid + ":hash"
+		unread   uint = 0
+		err      error
+		b        []byte
 	)
 
 	//判断需要增加未读消息
@@ -106,7 +104,7 @@ func (h *HistoryRecord) PushHistoryRecord(uuid string, key string, val *HistoryM
 				unread = history.Unread
 			}
 		}
-
+		unread += 1
 	}
 
 	val.Unread = unread
@@ -115,9 +113,39 @@ func (h *HistoryRecord) PushHistoryRecord(uuid string, key string, val *HistoryM
 	if b, err = json.Marshal(val); err != nil {
 		return
 	}
-
 	err = core.CLusterClient.HSet(redisKey, key, string(b)).Err()
-	fmt.Println(err)
+
+	//判断当消息内容为空时，结束方法；不为空时，将消息加入之历史消息
+	if val.Content == "" {
+		return
+	}
+
+	//定义缓存key
+	redisKey = "historyRecord:uuid:" + uuid + ":to_id:" + val.Id + ":list"
+	core.CLusterClient.LPush(redisKey, string(b))
+	//历史消息只保留100条数据
+	core.CLusterClient.LTrim(redisKey, 0, 100)
+}
+
+//获取历史聊天内容
+func (h *HistoryRecord) HistoryInfo(id string) {
+	var (
+		redisKey string
+		list     []string
+	)
+
+	//参数判断
+	if id == "" {
+		core.ResponseSocketMessage(h.conn, "err", "用户id不能为空")
+		return
+	}
+
+	//定义缓存key
+	redisKey = "historyRecord:uuid:" + h.uuid + ":to_id:" + id + ":list"
+
+	//获取缓存
+	list = core.CLusterClient.LRange(redisKey, 0, -1).Val()
+	core.ResponseSocketMessage(h.conn, "HistoryInfo", list)
 }
 
 //根据id从聊天列表中删除消息
@@ -137,4 +165,40 @@ func (h *HistoryRecord) RemoveHistoryRecord(id string) {
 		core.ResponseSocketMessage(h.conn, "err", err.Error())
 		return
 	}
+}
+
+//清除未读消息
+func (h *HistoryRecord) ClearUnread(id string) {
+	var (
+		redisKey      = "historyRecord:uuid:" + h.uuid + ":hash"
+		err      error
+		b        []byte
+		msg      *HistoryMessage
+	)
+
+	//参数判断
+	if id == "" {
+		return
+	}
+
+	//获取缓存
+	if b, err = core.CLusterClient.HGet(redisKey, id).Bytes(); err != nil {
+		return
+	}
+
+	//将字符串解析为结构体
+	msg = new(HistoryMessage)
+	if err = json.Unmarshal(b, msg); err != nil {
+		return
+	}
+
+	//修改未读消息数量
+	msg.Unread = 0
+
+	//将消息转化为字符串保存
+	if b, err = json.Marshal(msg); err != nil {
+		return
+	}
+
+	core.CLusterClient.HSet(redisKey, id, string(b))
 }

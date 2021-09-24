@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
+	"hichat.zozoo.net/apps/messageServer/common"
 	"hichat.zozoo.net/core"
+	"log"
 	"reflect"
 )
 
@@ -19,6 +21,15 @@ type (
 		Service string `json:"service" validate:"required"` //使用的服务
 		Content string `json:"content"`                     //消息类容
 	}
+
+	//mq消息结构体
+	MqRequest struct {
+		FromId      string `json:"from_id"`
+		ToId        string `json:"to_id"`
+		MsgType     string `json:"msg_type"`
+		ContentType string `json:"content_type"`
+		Content     string `json:"content"`
+	}
 )
 
 //定义全局变量，保存用户连接
@@ -27,7 +38,11 @@ var Conns map[string]*websocket.Conn
 func NewListenService() *ListenService {
 	Conns = make(map[string]*websocket.Conn, 0)
 
-	return &ListenService{}
+	//接收mq消息
+	var l = &ListenService{}
+	go l.receiveMqMsg()
+
+	return l
 }
 
 //监听用户长连接
@@ -39,6 +54,15 @@ func (l *ListenService) Listen(uuid string, conn *websocket.Conn) (err error) {
 	//开辟协程监听连接状态
 	go l.listenStatus(uuid, conn)
 
+	/**
+	将本地mq地址保存在用户缓存中，
+	标记用户当前是登录状态，
+	当其他用户给他发送消息时需要判断当前用户状态，
+	当用户是登录状态时，向用户发送socket消息
+	*/
+	var redisKey = "user:mqHost:uuid:" + uuid + ":string:"
+	core.CLusterClient.Set(redisKey, common.AppCfg.MqHost, core.DefaultExpire)
+
 	return err
 }
 
@@ -49,8 +73,19 @@ func (l *ListenService) listenStatus(uuid string, conn *websocket.Conn) {
 		err error
 	)
 
-	defer conn.Close()
-	defer delete(Conns, uuid)
+	//当用户断开连接时执行
+	defer func() {
+		//关闭用户socket连接
+		conn.Close()
+		//删除用户连接信息
+		delete(Conns, uuid)
+		//删除用户登录状态
+		var redisKey = "user:mqHost:uuid:" + uuid + ":string:"
+		core.CLusterClient.Del(redisKey)
+
+		fmt.Println("用户断开连接")
+	}()
+
 	p = make([]byte, 1024)
 
 	for {
@@ -163,4 +198,56 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 	default:
 		fmt.Println(clientMessage.Content)
 	}
+}
+
+//接收rabbitMq消息
+func (l *ListenService) receiveMqMsg() {
+
+	var ch = common.MqCh
+	msgs, err := ch.Consume(
+		common.QueueName,
+		"MsgWorkConsumer",
+		false, //Auto Ack
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for msg := range msgs {
+		//将数据发送至具体方法处理
+		go l.handleMqMsg(msg.Body)
+		msg.Ack(false) //Ack
+	}
+}
+
+func (l *ListenService) handleMqMsg(msg []byte) {
+	var (
+		res   *MqRequest
+		err   error
+		conn  *websocket.Conn
+		exist bool
+	)
+
+	//将字符切片解析为结构体对象
+	res = new(MqRequest)
+	if err = json.Unmarshal(msg, res); err != nil {
+		fmt.Println(string(msg))
+		return
+	}
+
+	//判断用户是否登录
+	if conn, exist = Conns[res.ToId]; !exist {
+		//用户未登录，删除用户缓存
+		var redisKey = "user:mqHost:uuid:" + res.ToId + ":string:"
+		core.CLusterClient.Del(redisKey)
+		return
+	}
+
+	//向用户发送消息
+	core.ResponseSocketMessage(conn, "MqMsg", res)
 }

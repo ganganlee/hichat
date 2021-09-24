@@ -14,7 +14,9 @@ type (
 )
 
 func NewGatewayRpc(s *service.GatewayService) *GatewayRpc {
-	return &GatewayRpc{}
+	return &GatewayRpc{
+		s,
+	}
 }
 
 //发送消息到网关
