@@ -1,3 +1,5 @@
+var ChatMembers = [];
+
 /**
  * 展示创建群聊模态框
  */
@@ -83,20 +85,30 @@ function Groups(data) {
 }
 
 /**
+ * 展开群设置
+ * @param data
+ * @param e
+ */
+function groupSetting(gid, e) {
+    e.stopPropagation();
+    GroupMembers(gid);
+    $('#sidebar-tool').fadeIn();
+}
+
+/**
  * 获取群成员
  * @param data
  * @returns {boolean}
  * @constructor
  */
-function GroupMembers(data, e) {
+function GroupMembers(data) {
     if (typeof data === "string") {
-        e.stopPropagation();
         //发送获取群成员请求
         ws.send('{"type":"GroupMembers","service":"UserGroupMemberService","content":"' + data + '"}')
-        $('#sidebar-tool').fadeIn();
         return false;
     }
 
+    ChatMembers = [];
     if (data.length === 0) {
         return false;
     }
@@ -114,6 +126,7 @@ function GroupMembers(data, e) {
     for (let i in data) {
         let item = data[i];
         users.push(item.uuid);
+        ChatMembers[item.uuid] = item;
         html += `
             <li class="sidebar-user-item">
                 <img src="${item.avatar}" alt="">

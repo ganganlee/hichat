@@ -29,6 +29,7 @@ type (
 		MsgType     string `json:"msg_type"`
 		ContentType string `json:"content_type"`
 		Content     string `json:"content"`
+		GroupId     string `json:"group_id"`
 	}
 )
 

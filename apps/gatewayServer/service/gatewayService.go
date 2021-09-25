@@ -1,17 +1,23 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"github.com/micro/go-micro/v2"
+	"github.com/micro/go-micro/v2/registry"
+	"github.com/micro/go-micro/v2/registry/etcd"
 	"github.com/streadway/amqp"
 	"hichat.zozoo.net/apps/gatewayServer/common"
 	"hichat.zozoo.net/apps/gatewayServer/models"
 	"hichat.zozoo.net/core"
+	"hichat.zozoo.net/rpc/userGroupMembers"
 )
 
 type (
 	GatewayService struct {
-		model *models.MessageModel
+		model     *models.MessageModel
+		memberRpc userGroupMembers.UserGroupMembersService
 	}
 
 	//发送消息
@@ -21,12 +27,21 @@ type (
 		MsgType     string `json:"msg_type" validate:"required"`
 		ContentType string `json:"content_type" validate:"required"`
 		Content     string `json:"content" validate:"required"`
+		GroupId     string `json:"group_id"`
 	}
 )
 
 func NewGatewayService(m *models.MessageModel) *GatewayService {
+	var (
+		service = micro.NewService(
+			micro.Registry(etcd.NewRegistry(registry.Addrs(common.AppCfg.Etcd.Host))),
+		)
+		memberRpc = userGroupMembers.NewUserGroupMembersService(common.AppCfg.RpcServer.UserRpc, service.Client())
+	)
+
 	return &GatewayService{
-		m,
+		model:     m,
+		memberRpc: memberRpc,
 	}
 }
 
@@ -35,9 +50,6 @@ func (g *GatewayService) SendMsg(res *SendMsgRequest) (err error) {
 	var (
 		msg       *models.Message
 		tableName string
-
-		redisKey = "user:mqHost:uuid:" + res.ToId + ":string:"
-		mqHost   = core.CLusterClient.Get(redisKey).Val()
 	)
 
 	msg = &models.Message{
@@ -57,12 +69,57 @@ func (g *GatewayService) SendMsg(res *SendMsgRequest) (err error) {
 	}
 
 	//判断消息类型，当消息为私聊时往下执行，当消息为群聊时需要获取群成员，逻辑待定
-	if res.MsgType == "groupMessage" {
-		return nil
+	switch res.MsgType {
+	case "groupMessage": //群聊
+		err = g.sendGroupMessage(res)
+		break
+	case "privateMessage": //私聊
+		err = g.sendMq(msg.ToId, res)
+		break
 	}
 
+	return err
+}
+
+//发送私聊消息
+func (g *GatewayService) sendGroupMessage(msg *SendMsgRequest) (err error) {
+
+	var (
+		rsp *userGroupMembers.MembersResponse
+	)
+
+	//获取群成员
+	if rsp, err = g.memberRpc.Members(context.TODO(), &userGroupMembers.MembersRequest{Gid: msg.ToId}); err != nil {
+		return err
+	}
+
+	msg.GroupId = msg.ToId
+
+	//循环群成员，判断对方是否登录，如果登录则发送websocket消息
+	for _, item := range rsp.Members {
+
+		//判断，当当前成员为发送消息的成员时，不需要发送mq消息
+		if msg.FromId == item.Uuid {
+			continue
+		}
+
+		msg.ToId = item.Uuid
+		if err = g.sendMq(item.Uuid, msg); err != nil {
+			continue
+		}
+	}
+	return nil
+}
+
+//发送消息到rabbitMq
+func (g *GatewayService) sendMq(id string, msg *SendMsgRequest) (err error) {
+	var (
+		redisKey string
+		mqHost   string
+	)
+
 	//判断用户是否登录，登陆时将消息发送至mq队列中
-	redisKey = "user:mqHost:uuid:" + res.ToId + ":string:"
+	redisKey = "user:mqHost:uuid:" + id + ":string:"
 	if mqHost = core.CLusterClient.Get(redisKey).Val(); mqHost == "" {
 		//未登录，直接返回
 		return nil

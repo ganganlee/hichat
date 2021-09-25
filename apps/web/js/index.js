@@ -172,6 +172,8 @@ function chat(token, msgType) {
     switch (msgType) {
         case 'groupMessage'://群聊
             CHATInfo = GROUPS[token];
+            //获取群成员
+            GroupMembers(token);
             break;
         case 'privateMessage'://私聊
             CHATInfo = FRIENDS[token];
@@ -220,7 +222,7 @@ function chat(token, msgType) {
     //保存聊天对象
     switch (msgType) {
         case 'groupMessage'://群聊
-            $('.extend').attr('onclick', 'GroupMembers("' + token + '",event)');
+            $('.extend').attr('onclick', 'groupSetting("' + token + '",event)');
             break;
         case 'privateMessage'://私聊
             CHATInfo = FRIENDS[token];
@@ -242,10 +244,22 @@ function HistoryInfo(data) {
     for (let i = data.length - 1; i >= 0; i--) {
         let message = JSON.parse(data[i]);
 
-        //判断接收者
+        console.log(message);
+        let avatar, username;
         let position = 'other';
-        let avatar = CHATInfo.avatar;
-        let username = CHATInfo.username;
+        //根据消息类型，获取接收者头像
+        switch (message.message_type) {
+            case 'groupMessage'://群聊
+                console.log(ChatMembers);
+                avatar = ChatMembers[message.uuid].avatar;
+                username = ChatMembers[message.uuid].username;
+                break;
+            case 'privateMessage'://私聊
+                avatar = CHATInfo.avatar;
+                username = CHATInfo.username;
+                break;
+        }
+
         if (message.uuid === USERInfo.Uuid) {
             position = 'me';
             avatar = USERInfo.Avatar;
@@ -255,6 +269,9 @@ function HistoryInfo(data) {
         //渲染消息
         fillingMsg(message.content_type, message.content, avatar, username, position);
     }
+
+    //将滚动条回到原位
+    $('#chat-wrapper').css('top', 0);
 
     //dom滚动至底部
     scrollToFooter('#chat-wrapper');
@@ -985,20 +1002,18 @@ function customMenu(event, friendToken, origin) {
 }
 
 /**
- * 删除聊天记录
- * @param friendToken
+ * 删除聊天列表
+ * @param id
  */
-function delHistory(friendToken) {
-    AjaxMsg('/v1/msg/list/' + friendToken, '', (json) => {
-        if (json.code !== 200) {
-            jqtoast(json.msg);
-            return false;
-        }
+function delHistory(id) {
+    //发送删除请求
+    ws.send('{"type":"RemoveHistoryRecord","service":"HistoryRecordService","content":"' + id + '"}');
+    //删除列表
+    $('.history-' + id).remove();
 
-        jqtoast('删除成功');
-        $(`.history-${friendToken}`).remove();
-        delete HistoryList[friendToken];
-    }, "GET")
+    //删除全局变量数据
+    console.log(id);
+    delete HistoryList[id];
 }
 
 // 鼠标点击其他位置时隐藏菜单
@@ -1055,43 +1070,76 @@ function MqMsg(res) {
 
 
     //判断消息类型
-    if (res.msg_type === 'privateMessage') {
-        //私聊
-        //判断当前用户是否在聊天列表，不在聊天列表则添加
-        if (!HistoryList[res.from_id]) {
-            let res = {
-                date: (new Date().getTime()) * 1000000,
-                msg: res.content,
-                token: res.from_id,
-                unread: 0,
-                avatar: FRIENDS[res.from_id].avatar,
-                username: FRIENDS[res.from_id].username
-            };
-            HistoryList[res.from_id] = res;
-            AppendHistoryHtml(res);
+    switch (res.msg_type) {
+        case 'privateMessage': //私聊
+            //判断当前用户是否在聊天列表，不在聊天列表则添加
+            if (!HistoryList[res.from_id]) {
+                let item = {
+                    date: (new Date().getTime()) * 1000000,
+                    msg: res.content,
+                    token: res.from_id,
+                    unread: 0,
+                    avatar: FRIENDS[res.from_id].avatar,
+                    username: FRIENDS[res.from_id].username
+                };
+                HistoryList[item.from_id] = item;
+                AppendHistoryHtml(item);
 
-            //增加未读消息
-            pushUnread(res.token);
-            return;
-        }
+                //增加未读消息
+                pushUnread(item.token);
+                return;
+            }
 
-        //判断当前的聊天对象是不是接收到消息的用户，如果不是，则增加角标
-        if (CHATInfo.uuid !== res.from_id) {
-            setUnreadMessage(res.from_id, res.content_type, res.content);
+            //判断当前的聊天对象是不是接收到消息的用户，如果不是，则增加角标
+            if (CHATInfo.uuid !== res.from_id) {
+                setUnreadMessage(res.from_id, res.content_type, res.content);
 
-            //增加未读消息
-            pushUnread(res.from_id);
-            return;
-        }
+                //增加未读消息
+                pushUnread(res.from_id);
+                return;
+            }
 
-        fillingMsg(res.content_type, res.content, FRIENDS[res.from_id].avatar, FRIENDS[res.from_id].username, 'other')
+            fillingMsg(res.content_type, res.content, FRIENDS[res.from_id].avatar, FRIENDS[res.from_id].username, 'other');
 
-        //同步左边聊天列表
-        setUnreadMessage(res.from_id, res.content_type, res.content, true)
+            //同步左边聊天列表
+            setUnreadMessage(res.from_id, res.content_type, res.content, true);
+            break;
+        case 'groupMessage': //私聊
+            //判断当前用户是否在聊天列表，不在聊天列表则添加
+            console.log(res);
+            if (!HistoryList[res.group_id]) {
+                let item = {
+                    date: (new Date().getTime()) * 1000000,
+                    msg: res.content,
+                    token: res.group_id,
+                    unread: 0,
+                    avatar: GROUPS[res.group_id].avatar,
+                    username: GROUPS[res.group_id].username
+                };
+                HistoryList[item.group_id] = item;
+                AppendHistoryHtml(item);
 
-        //dom滚动至底部
-        scrollToFooter('#chat-wrapper');
+                //增加未读消息
+                pushUnread(item.group_id);
+                return;
+            }
 
-        return;
+            //判断当前的聊天对象是不是接收到消息的用户，如果不是，则增加角标
+            if (CHATInfo.uuid !== res.group_id) {
+                setUnreadMessage(res.group_id, res.content_type, res.content);
+
+                //增加未读消息
+                pushUnread(res.group_id);
+                return;
+            }
+
+            fillingMsg(res.content_type, res.content, ChatMembers[res.from_id].avatar, ChatMembers[res.from_id].username, 'other');
+
+            //同步左边聊天列表
+            setUnreadMessage(res.group_id, res.content_type, res.content, true);
+            break;
     }
+
+    //dom滚动至底部
+    scrollToFooter('#chat-wrapper');
 }

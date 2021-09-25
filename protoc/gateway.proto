@@ -10,6 +10,7 @@ message SendMsgRequest {
   string msg_type = 3;
   string content_type = 4;
   string content = 5;
+  string group_id = 6;
 }
 
 message SendMsgResponse{

@@ -11,6 +11,7 @@ import (
 	"hichat.zozoo.net/apps/messageServer/common"
 	"hichat.zozoo.net/core"
 	gateway "hichat.zozoo.net/rpc/Gateway"
+	"hichat.zozoo.net/rpc/userGroupMembers"
 	"time"
 )
 
@@ -29,6 +30,7 @@ type (
 		ContentType string `json:"content_type" validate:"required"` //消息类型，文本还是其他类型
 		Content     string `json:"content" validate:"required"`      //消息内容
 		FromId      string `json:"from_id"`                          //发送的id
+		GroupId     string `json:"group_id"`                         //群id
 	}
 )
 
@@ -88,8 +90,7 @@ func (m *MessageService) handleCache(msg *SendMsgRequest) {
 		t              = time.Now()
 	)
 
-	//添加缓存逻辑，需要修改自己和对方两处缓存，
-	//1、将聊天列表的缓存消息覆盖为当前信息；
+	//组织消息数据
 	historyMsg = &HistoryMessage{
 		Id:          msg.Id,                          //好友id
 		MessageType: msg.MsgType,                     //消息类型
@@ -99,17 +100,57 @@ func (m *MessageService) handleCache(msg *SendMsgRequest) {
 		Uuid:        m.uuid,                          //发送消息的用户uuid
 	}
 
-	//添加自己的不需要添加未读数量，对方需要添加未读数量
-	historyService.PushHistoryRecord(m.uuid, msg.Id, historyMsg, false)
+	//判断消息类型，进行对应的操作
+	switch historyMsg.MessageType {
+	case "privateMessage": //私聊
+		//添加缓存逻辑，需要修改自己和对方两处缓存，
+		//添加自己的不需要添加未读数量，对方需要添加未读数量
+		historyService.PushHistoryRecord(m.uuid, msg.Id, historyMsg, false)
 
-	//添加对方需要添加未读数量
-	historyMsg.Id = m.uuid
-	historyService.PushHistoryRecord(msg.Id, m.uuid, historyMsg, true)
+		//添加对方需要添加未读数量
+		historyMsg.Id = m.uuid
+		historyService.PushHistoryRecord(msg.Id, m.uuid, historyMsg, true)
+		break
+	case "groupMessage": //群聊
+		//需要获取所有群成员，给对应群成员添加缓存
+		var (
+			groupMemberService = NewUserGroupMembersService(m.conn, m.uuid)
+			list               *userGroupMembers.MembersResponse
+			err                error
+		)
+
+		//获取群成员列表
+		if list, err = groupMemberService.GetGroupMembers(msg.Id); err != nil {
+			core.ResponseSocketMessage(m.conn, "err", err.Error())
+			return
+		}
+
+		//循环列表，添加缓存
+		for _, item := range list.Members {
+
+			//判断是否添加未读消息
+			var addUnread = true
+			if item.Uuid == m.uuid { //当用户是自己时不需要添加未读消息
+				addUnread = false
+			}
+
+			historyService.PushHistoryRecord(item.Uuid, msg.Id, historyMsg, addUnread)
+		}
+		break
+	}
+
+	////添加缓存逻辑，需要修改自己和对方两处缓存，
+	////添加自己的不需要添加未读数量，对方需要添加未读数量
+	//historyService.PushHistoryRecord(m.uuid, msg.Id, historyMsg, false)
+	//
+	////添加对方需要添加未读数量
+	//historyMsg.Id = m.uuid
+	//historyService.PushHistoryRecord(msg.Id, m.uuid, historyMsg, true)
 }
 
 //将消息发送至gateway服务器
 func (m *MessageService) sendMsgToGateway(res *SendMsgRequest) {
-	//判断用户登录状态，如果登录则向网关发送消息
+
 	var (
 		rpcRes *gateway.SendMsgRequest
 		err    error

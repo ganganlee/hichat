@@ -85,7 +85,7 @@ func (u *UserGroupMembersService) RemoveMember(data string) {
 		err       error
 		rsp       *userGroupMembers.DelByMemberIdResponse
 		removeRes *RemoveMemberRequest
-		validate = validator.New()
+		validate  = validator.New()
 	)
 
 	//将字符串转换为对象
@@ -96,7 +96,7 @@ func (u *UserGroupMembersService) RemoveMember(data string) {
 	}
 
 	//验证数据
-	if err = validate.Struct(removeRes);err != nil {
+	if err = validate.Struct(removeRes); err != nil {
 		core.ResponseSocketMessage(u.conn, "err", err.Error())
 		return
 	}
@@ -126,12 +126,23 @@ func (u *UserGroupMembersService) GroupMembers(gid string) {
 		list *userGroupMembers.MembersResponse
 		err  error
 	)
-	if list, err = u.membersRpc.Members(context.TODO(), &userGroupMembers.MembersRequest{
-		Gid: gid,
-	}); err != nil {
+
+	//获取成员列表
+	if list, err = u.GetGroupMembers(gid); err != nil {
 		core.ResponseSocketMessage(u.conn, "err", err.Error())
 		return
 	}
 
 	core.ResponseSocketMessage(u.conn, "GroupMembers", list.Members)
+}
+
+//调用rpc方法获取群成员
+func (u *UserGroupMembersService) GetGroupMembers(gid string) (list *userGroupMembers.MembersResponse, err error) {
+	if list, err = u.membersRpc.Members(context.TODO(), &userGroupMembers.MembersRequest{
+		Gid: gid,
+	}); err != nil {
+		return nil, err
+	}
+
+	return
 }
