@@ -72,8 +72,6 @@ func (u *UserService) FindByUuid(uuid string) (user *model.User, err error) {
 		return user, nil
 	}
 
-	fmt.Println(err)
-
 	//查找数据库
 	if user, err = u.model.FindByUuid(uuid); err != nil {
 		return nil, err

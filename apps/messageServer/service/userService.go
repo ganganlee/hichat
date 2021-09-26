@@ -79,17 +79,52 @@ func (u *UserService) ApplyFriend(friendUuid string) {
 			Uuid:       u.Uuid,
 			FriendUuid: friendUuid,
 		}
-		rpcRsp *userFriends.ApplyFriendsResponse
+		rpcRsp  *userFriends.ApplyFriendsResponse
+		userRsp *user.FindByUuidResponse
+		b       []byte
 	)
 
 	//调用rpc方法
 	if rpcRsp, err = u.userFriendsRpc.ApplyFriends(context.TODO(), rpcRes); err != nil {
-		core.ResponseSocketMessage(u.Conn, "err", err.Error())
+		core.ResponseSocketMessage(u.Conn, "err", core.DecodeRpcErr(err.Error()).Error())
 		return
 	}
 
 	//添加好友发送成功
 	core.ResponseSocketMessage(u.Conn, "success", rpcRsp.Msg)
+
+	//判断用户是否登录，登陆时将消息发送至mq队列中
+	var (
+		redisKey = "user:mqHost:uuid:" + friendUuid + ":string:"
+		mqHost   string
+		sendMsg  *SendMsgRequest
+	)
+
+	if mqHost = core.CLusterClient.Get(redisKey).Val(); mqHost == "" {
+		//未登录，直接返回
+		return
+	}
+
+	//获取好友信息
+	if userRsp, err = u.userRpc.FindByUuid(context.TODO(), &user.FindByUuidRequest{Uuid: friendUuid}); err != nil {
+		//获取好友信息失败
+		return
+	}
+
+	if b, err = json.Marshal(userRsp.User); err != nil {
+		//对象转json失败
+		return
+	}
+
+	sendMsg = &SendMsgRequest{
+		Id:          friendUuid,
+		MsgType:     "ApplyFriend",
+		ContentType: "text",
+		Content:     string(b),
+		FromId:      u.Uuid,
+	}
+	msgService := NewMessageService(u.Conn, u.Uuid)
+	msgService.sendMsgToGateway(sendMsg)
 }
 
 //同意添加好友
@@ -100,17 +135,27 @@ func (u *UserService) ApproveFriend(friendUuid string) {
 			Uuid:       u.Uuid,
 			FriendUuid: friendUuid,
 		}
-		rpcRsp *userFriends.ApproveFriendsResponse
+		sendMsg *SendMsgRequest
 	)
 
 	//调用rpc方法
-	if rpcRsp, err = u.userFriendsRpc.ApproveFriends(context.TODO(), rpcRes); err != nil {
-		core.ResponseSocketMessage(u.Conn, "err", core.DecodeRpcErr(err.Error()))
+	if _, err = u.userFriendsRpc.ApproveFriends(context.TODO(), rpcRes); err != nil {
+		core.ResponseSocketMessage(u.Conn, "err", core.DecodeRpcErr(err.Error()).Error())
 		return
 	}
 
-	core.ResponseSocketMessage(u.Conn, "success", rpcRsp.Msg)
+	//发送消息
+	sendMsg = &SendMsgRequest{
+		Id:          friendUuid,
+		MsgType:     "ApproveFriend",
+		ContentType: "text",
+		Content:     friendUuid,
+		FromId:      u.Uuid,
+	}
+	msgService := NewMessageService(u.Conn, u.Uuid)
+	msgService.sendMsgToGateway(sendMsg)
 
+	core.ResponseSocketMessage(u.Conn, "ApproveFriend", friendUuid)
 }
 
 //拒绝好友申请

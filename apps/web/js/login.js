@@ -67,7 +67,6 @@ function login() {
 
         //保存token
         setCookie('token', json.result.token, 24 * 60 * 60);
-        setCookie('messageHost', json.result.host, 24 * 60 * 60);
 
         //跳转至首页
         setTimeout(function () {

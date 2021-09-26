@@ -20,7 +20,7 @@ type (
 	RegisterRequest struct {
 		Username string `json:"username" binding:"required,min=3,max=25"`
 		Password string `json:"password" binding:"required,min=6,max=25"`
-		Avatar   string `json:"avatar" binding:"required,url"`
+		Avatar   string `json:"avatar"`
 	}
 	RegisterResponse struct {
 		Uuid string `json:"uuid"`
@@ -62,7 +62,7 @@ func (u *UserService) Register(res *RegisterRequest) (rsp *RegisterResponse, err
 		rpcUser = &user.User{
 			Username: res.Username,
 			Password: res.Password,
-			Avatar:   res.Avatar,
+			Avatar:   "https://user.hudongku.cn/images/userimg.png",
 		}
 
 		rpcRes = new(user.RegisterRequest)

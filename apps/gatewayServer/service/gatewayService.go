@@ -47,26 +47,6 @@ func NewGatewayService(m *models.MessageModel) *GatewayService {
 
 //发送消息到网关
 func (g *GatewayService) SendMsg(res *SendMsgRequest) (err error) {
-	var (
-		msg       *models.Message
-		tableName string
-	)
-
-	msg = &models.Message{
-		FromId:      res.FromId,
-		ToId:        res.ToId,
-		MsgType:     res.MsgType,
-		ContentType: res.ContentType,
-		Content:     res.Content,
-	}
-
-	//获取表名称
-	tableName = common.GetMessageTable(res.FromId, res.ToId, res.MsgType)
-
-	//将消息入库
-	if err = g.model.Create(tableName, msg); err != nil {
-		return err
-	}
 
 	//判断消息类型，当消息为私聊时往下执行，当消息为群聊时需要获取群成员，逻辑待定
 	switch res.MsgType {
@@ -74,8 +54,19 @@ func (g *GatewayService) SendMsg(res *SendMsgRequest) (err error) {
 		err = g.sendGroupMessage(res)
 		break
 	case "privateMessage": //私聊
-		err = g.sendMq(msg.ToId, res)
+		//消息入库
+		if err = g.saveMsg(res); err != nil {
+			return err
+		}
+		err = g.sendMq(res.ToId, res)
 		break
+	case "ApplyFriend": //好友申请通知
+		err = g.sendMq(res.ToId, res)
+		break
+	case "ApproveFriend":
+		err = g.sendMq(res.ToId, res)
+		break
+
 	}
 
 	return err
@@ -83,6 +74,16 @@ func (g *GatewayService) SendMsg(res *SendMsgRequest) (err error) {
 
 //发送私聊消息
 func (g *GatewayService) sendGroupMessage(msg *SendMsgRequest) (err error) {
+
+	//消息入库
+	if err = g.saveMsg(msg); err != nil {
+		return err
+	}
+
+	//消息入库
+	if err = g.saveMsg(msg); err != nil {
+		return err
+	}
 
 	var (
 		rsp *userGroupMembers.MembersResponse
@@ -113,6 +114,7 @@ func (g *GatewayService) sendGroupMessage(msg *SendMsgRequest) (err error) {
 
 //发送消息到rabbitMq
 func (g *GatewayService) sendMq(id string, msg *SendMsgRequest) (err error) {
+
 	var (
 		redisKey string
 		mqHost   string
@@ -149,4 +151,30 @@ func (g *GatewayService) sendMq(id string, msg *SendMsgRequest) (err error) {
 	}
 
 	return err
+}
+
+//将消息保存进入数据库
+func (g *GatewayService) saveMsg(res *SendMsgRequest) (err error) {
+	var (
+		msg       *models.Message
+		tableName string
+	)
+
+	msg = &models.Message{
+		FromId:      res.FromId,
+		ToId:        res.ToId,
+		MsgType:     res.MsgType,
+		ContentType: res.ContentType,
+		Content:     res.Content,
+	}
+
+	//获取表名称
+	tableName = common.GetMessageTable(res.FromId, res.ToId, res.MsgType)
+
+	//将消息入库
+	if err = g.model.Create(tableName, msg); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -133,11 +133,11 @@ function friends(friends) {
         }
 
         html += `
-                <li>
-                    <p>${title}</p>
-                    ${friendList[i].join('')}
-                </li>
-            `;
+            <li>
+                <p>${title}</p>
+                ${friendList[i].join('')}
+            </li>
+        `;
     }
 
     //渲染好友列表
@@ -244,13 +244,11 @@ function HistoryInfo(data) {
     for (let i = data.length - 1; i >= 0; i--) {
         let message = JSON.parse(data[i]);
 
-        console.log(message);
         let avatar, username;
         let position = 'other';
         //根据消息类型，获取接收者头像
         switch (message.message_type) {
             case 'groupMessage'://群聊
-                console.log(ChatMembers);
                 avatar = ChatMembers[message.uuid].avatar;
                 username = ChatMembers[message.uuid].username;
                 break;
@@ -327,7 +325,6 @@ function websocket() {
 
     //连接关闭时触发
     ws.onclose = function (evt) {
-        jqtoast('服务连接失败，正在重试！');
         setTimeout(function () {
             websocket();
         }, 1000);
@@ -681,8 +678,11 @@ function findUser(users) {
     let html = '';
     for (let i in users) {
         let user = users[i];
+        console.log(user);
+
         let status = '未添加';
         let click = 'selectUser(this)';
+
         //判断当前用户是否为自己
         if (user.uuid === USERInfo.uuid) {
             status = '自己';
@@ -705,7 +705,8 @@ function findUser(users) {
     }
 
     //渲染列表
-    $('#friends-hook .models-content').html(html);
+    console.log(html);
+    $('#friends-hook .model-content').html(html);
 
     //展示模态框
     changeModalStatus('#friends-hook', 'show')
@@ -769,6 +770,15 @@ function friendApprove(token, username, el) {
     document.oncontextmenu = function (e) {
         return false;
     };
+}
+
+//同意好友申请回调
+function ApproveFriend(id) {
+    jqtoast('添加好友成功，你们现在可以聊天了')
+    chat(id, 'privateMessage');
+    ws.send('{"type":"Friends","service":"UserService"}');
+    $('#input_box').html('好友申请通过，咱们可以聊天了');
+    sendMsg();
 }
 
 /**
@@ -1079,6 +1089,7 @@ function MqMsg(res) {
                     msg: res.content,
                     token: res.from_id,
                     unread: 0,
+                    message_type: res.msg_type,
                     avatar: FRIENDS[res.from_id].avatar,
                     username: FRIENDS[res.from_id].username
                 };
@@ -1103,24 +1114,27 @@ function MqMsg(res) {
 
             //同步左边聊天列表
             setUnreadMessage(res.from_id, res.content_type, res.content, true);
+
+            //dom滚动至底部
+            scrollToFooter('#chat-wrapper');
             break;
-        case 'groupMessage': //私聊
+        case 'groupMessage': //群聊
             //判断当前用户是否在聊天列表，不在聊天列表则添加
-            console.log(res);
             if (!HistoryList[res.group_id]) {
                 let item = {
                     date: (new Date().getTime()) * 1000000,
                     msg: res.content,
                     token: res.group_id,
-                    unread: 0,
+                    unread: 1,
+                    message_type: res.msg_type,
                     avatar: GROUPS[res.group_id].avatar,
                     username: GROUPS[res.group_id].username
                 };
-                HistoryList[item.group_id] = item;
+                HistoryList[res.group_id] = item;
                 AppendHistoryHtml(item);
 
                 //增加未读消息
-                pushUnread(item.group_id);
+                // pushUnread(item.token);
                 return;
             }
 
@@ -1137,9 +1151,16 @@ function MqMsg(res) {
 
             //同步左边聊天列表
             setUnreadMessage(res.group_id, res.content_type, res.content, true);
+
+            //dom滚动至底部
+            scrollToFooter('#chat-wrapper');
+            break;
+        case 'ApplyFriend': //好友申请通知
+            //重新获取列表
+            ws.send('{"type":"Friends","service":"UserService"}');
+            break;
+        case 'ApproveFriend': //同意申请通知
+            ws.send('{"type":"Friends","service":"UserService"}');
             break;
     }
-
-    //dom滚动至底部
-    scrollToFooter('#chat-wrapper');
 }

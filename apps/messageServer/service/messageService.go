@@ -88,6 +88,7 @@ func (m *MessageService) handleCache(msg *SendMsgRequest) {
 		historyService = NewHistoryRecord(m.conn, m.uuid)
 		historyMsg     *HistoryMessage
 		t              = time.Now()
+		redisKey       = "historyRecord:uuid:" + m.uuid + ":messageUser:string"
 	)
 
 	//组织消息数据
@@ -100,6 +101,9 @@ func (m *MessageService) handleCache(msg *SendMsgRequest) {
 		Uuid:        m.uuid,                          //发送消息的用户uuid
 	}
 
+	//缓存当前用户的聊天对象
+	core.CLusterClient.Set(redisKey, msg.Id, 5*time.Minute)
+
 	//判断消息类型，进行对应的操作
 	switch historyMsg.MessageType {
 	case "privateMessage": //私聊
@@ -107,9 +111,21 @@ func (m *MessageService) handleCache(msg *SendMsgRequest) {
 		//添加自己的不需要添加未读数量，对方需要添加未读数量
 		historyService.PushHistoryRecord(m.uuid, msg.Id, historyMsg, false)
 
+		//获取对方的当前的聊天对象
+		var (
+			messageId string
+			unread    = true
+		)
+
+		//判断对方当前聊天对象是自己，则不用增加未读消息
+		redisKey = "historyRecord:uuid:" + msg.Id + ":messageUser:string"
+		if messageId = core.CLusterClient.Get(redisKey).Val(); messageId == m.uuid {
+			unread = false
+		}
+
 		//添加对方需要添加未读数量
 		historyMsg.Id = m.uuid
-		historyService.PushHistoryRecord(msg.Id, m.uuid, historyMsg, true)
+		historyService.PushHistoryRecord(msg.Id, m.uuid, historyMsg, unread)
 		break
 	case "groupMessage": //群聊
 		//需要获取所有群成员，给对应群成员添加缓存
@@ -117,6 +133,7 @@ func (m *MessageService) handleCache(msg *SendMsgRequest) {
 			groupMemberService = NewUserGroupMembersService(m.conn, m.uuid)
 			list               *userGroupMembers.MembersResponse
 			err                error
+			messageId          string
 		)
 
 		//获取群成员列表
@@ -134,18 +151,16 @@ func (m *MessageService) handleCache(msg *SendMsgRequest) {
 				addUnread = false
 			}
 
+			//获取当前成员的当前的聊天对象
+			redisKey = "historyRecord:uuid:" + item.Uuid + ":messageUser:string"
+			if messageId = core.CLusterClient.Get(redisKey).Val(); messageId == msg.Id {
+				addUnread = false
+			}
+
 			historyService.PushHistoryRecord(item.Uuid, msg.Id, historyMsg, addUnread)
 		}
 		break
 	}
-
-	////添加缓存逻辑，需要修改自己和对方两处缓存，
-	////添加自己的不需要添加未读数量，对方需要添加未读数量
-	//historyService.PushHistoryRecord(m.uuid, msg.Id, historyMsg, false)
-	//
-	////添加对方需要添加未读数量
-	//historyMsg.Id = m.uuid
-	//historyService.PushHistoryRecord(msg.Id, m.uuid, historyMsg, true)
 }
 
 //将消息发送至gateway服务器

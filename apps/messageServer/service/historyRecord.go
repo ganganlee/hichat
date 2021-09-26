@@ -146,6 +146,10 @@ func (h *HistoryRecord) HistoryInfo(id string) {
 	//获取缓存
 	list = core.CLusterClient.LRange(redisKey, 0, -1).Val()
 	core.ResponseSocketMessage(h.conn, "HistoryInfo", list)
+
+	//缓存当前用户的聊天对象，用来作为增加未读消息的判断依据
+	redisKey = "historyRecord:uuid:" + h.uuid + ":messageUser:string"
+	core.CLusterClient.Set(redisKey, id, 5*time.Minute)
 }
 
 //根据id从聊天列表中删除消息
@@ -170,7 +174,7 @@ func (h *HistoryRecord) RemoveHistoryRecord(id string) {
 //清除未读消息
 func (h *HistoryRecord) ClearUnread(id string) {
 	var (
-		redisKey      = "historyRecord:uuid:" + h.uuid + ":hash"
+		redisKey = "historyRecord:uuid:" + h.uuid + ":hash"
 		err      error
 		b        []byte
 		msg      *HistoryMessage
