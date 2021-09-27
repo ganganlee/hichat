@@ -207,8 +207,11 @@ function chat(token, msgType) {
 
     //去除未读消息
     const dom = $(`.history-${token} .unread-message`);
+    //获取当前的未读消息数量
+    let unread = parseInt(dom.text());
     dom.text(0);
     dom.hide();
+
     ws.send('{"type":"ClearUnread","service":"HistoryRecordService","content":"' + token + '"}');
 
     //增加当前列表聊天样式
@@ -230,6 +233,7 @@ function chat(token, msgType) {
     }
 
     $('#send').data('msg_type', msgType);
+    setAllUnread();
 
     //获取聊天记录
     ws.send('{"type":"HistoryInfo","service":"HistoryRecordService","content":"' + token + '"}');
@@ -389,6 +393,32 @@ function setUnreadMessage(token, type, content, clear) {
     let date = (new Date().getTime()) * 1000000;
     let d = formatDateByTimeStamp(date)
     $(`.history-${token} .user_time`).text(d);
+
+    //设置全局未读消息
+    setAllUnread();
+}
+
+/**
+ * 设置全局未读消息
+ * @param num
+ * @returns {boolean}
+ */
+function setAllUnread() {
+    //设置所有未读消息
+    const allUnreadDom = $('#si_1 span');
+    let allUnread = 0;
+    $('.user_list li .unread-message').each(function () {
+        allUnread += parseInt($(this).text());
+    });
+
+    allUnreadDom.text(allUnread);
+    //判断是否存在未读消息，不存在未读消息，则隐藏角标
+    if (allUnread === 0) {
+        allUnreadDom.hide();
+        return false;
+    }
+
+    allUnreadDom.show();
 }
 
 /**
@@ -600,6 +630,7 @@ function AppendHistoryHtml(user) {
 
     //填充数据
     $('.user_list').prepend(html);
+    setAllUnread();
 }
 
 /**
@@ -705,7 +736,6 @@ function findUser(users) {
     }
 
     //渲染列表
-    console.log(html);
     $('#friends-hook .model-content').html(html);
 
     //展示模态框
@@ -992,16 +1022,41 @@ function customMenu(event, friendToken, origin) {
     let scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft;// 获取水平滚动条位置
     const dom = $('#cursor');
 
-    if (origin === 'friend') {
-        //点击好友列表
-        $('#cursor-del-friend').attr('onclick', `delFriend('${friendToken}')`);
-        $('#cursor-del-friend').show();
-        $('#cursor-del-history').hide();
-    } else {
-        //点击消息列表
-        $('#cursor-del-friend').hide();
-        $('#cursor-del-history').show();
-        $('#cursor-del-history').attr('onclick', `delHistory('${friendToken}')`);
+    switch (origin) {
+        case 'friend':
+            //点击好友列表
+            $('#cursor-del-friend').attr('onclick', `delFriend('${friendToken}')`);
+            $('#cursor-del-friend').show();
+            $('#cursor-del-history').hide();
+            $('#cursor-del-group').hide();
+            $('#cursor-out-group').hide();
+            break;
+        case 'history':
+            //点击消息列表
+            $('#cursor-del-group').hide();
+            $('#cursor-out-group').hide();
+            $('#cursor-del-friend').hide();
+            $('#cursor-del-history').show();
+            $('#cursor-del-history').attr('onclick', `delHistory('${friendToken}')`);
+            break;
+        case 'group':
+            //点击好友列表
+            //判断是自己的群展示删除群聊
+            //不是自己的群展示退出群聊
+            if (GROUPS[friendToken].adminId === USERInfo.Uuid) {
+                $('#cursor-del-group').show();
+                $('#cursor-del-group').attr('onclick', `delGroup('${friendToken}')`);
+                $('#cursor-out-group').hide();
+                $('#cursor-del-friend').hide();
+                $('#cursor-del-history').hide();
+            } else {
+                $('#cursor-del-group').hide();
+                $('#cursor-out-group').show();
+                $('#cursor-out-group').attr('onclick', `outGroup('${friendToken}')`);
+                $('#cursor-del-friend').hide();
+                $('#cursor-del-history').hide();
+            }
+            break
     }
 
     //展示自定义菜单
@@ -1021,15 +1076,19 @@ function delHistory(id) {
     //删除列表
     $('.history-' + id).remove();
 
+    //获取当前消息的未读消息
+    const unread = parseInt($('.history-' + id + " .unread-message").text());
+
     //删除全局变量数据
-    console.log(id);
     delete HistoryList[id];
+    setAllUnread();
 }
 
 // 鼠标点击其他位置时隐藏菜单
 let userHeadImgModel = $(".user-head-img-models");
 document.onclick = function (event) {
     $('#cursor').hide();
+    $('#cursor-group').hide();
     userHeadImgModel.hide();
     $('.sidebar-users-wrapper').fadeOut();
     $('#sidebar-tool').fadeOut()
@@ -1038,19 +1097,6 @@ userHeadImgModel.bind("click", function (event) {
     event = event || window.event;
     event.stopPropagation();
 });
-
-/**
- * 增加未读消息
- * @param token
- */
-function pushUnread(token) {
-    //修改网页title
-    $('title').text('您有新消息 - 微聊');
-
-    // AjaxMsg('/v1/msg/unread/' + token, '', (json) => {
-    //     console.log(json);
-    // }, 'GET');
-}
 
 /**
  * 退出登录
@@ -1088,16 +1134,16 @@ function MqMsg(res) {
                     date: (new Date().getTime()) * 1000000,
                     msg: res.content,
                     token: res.from_id,
-                    unread: 0,
+                    unread: 1,
                     message_type: res.msg_type,
                     avatar: FRIENDS[res.from_id].avatar,
                     username: FRIENDS[res.from_id].username
                 };
-                HistoryList[item.from_id] = item;
+                HistoryList[res.from_id] = item;
                 AppendHistoryHtml(item);
 
                 //增加未读消息
-                pushUnread(item.token);
+                $('title').text('您有新消息 - Hi聊');
                 return;
             }
 
@@ -1106,7 +1152,7 @@ function MqMsg(res) {
                 setUnreadMessage(res.from_id, res.content_type, res.content);
 
                 //增加未读消息
-                pushUnread(res.from_id);
+                $('title').text('您有新消息 - Hi聊');
                 return;
             }
 
@@ -1134,7 +1180,7 @@ function MqMsg(res) {
                 AppendHistoryHtml(item);
 
                 //增加未读消息
-                // pushUnread(item.token);
+                $('title').text('您有新消息 - Hi聊');
                 return;
             }
 
@@ -1143,7 +1189,7 @@ function MqMsg(res) {
                 setUnreadMessage(res.group_id, res.content_type, res.content);
 
                 //增加未读消息
-                pushUnread(res.group_id);
+                $('title').text('您有新消息 - Hi聊');
                 return;
             }
 
@@ -1161,6 +1207,15 @@ function MqMsg(res) {
             break;
         case 'ApproveFriend': //同意申请通知
             ws.send('{"type":"Friends","service":"UserService"}');
+            break;
+        case 'AddMember'://入群通知
+            ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
+            break
+        case 'Refresh'://刷新好友列表和聊天列表
+            //获取群列表
+            ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
+            //重新渲染聊天记录列表
+            ws.send('{"type":"List","service":"HistoryRecordService","content":""}');
             break;
     }
 }

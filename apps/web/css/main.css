@@ -164,6 +164,7 @@ ul li{
 
 #si_1{
 	background: url(../images/icon/head_2.png) no-repeat;
+	position: relative;
 }
 
 #si_2{
@@ -171,14 +172,14 @@ ul li{
 	position: relative;
 }
 
-#si_2 span{
+#si_2 span,#si_1 span{
 	position: absolute;
 	top: -10px;
 	right: -10px;
 	padding: 0 6px;
 	background: red;
 	color: #fff;
-	border-radius: 100%;
+	border-radius: 16px;
 	display: none;
 }
 
@@ -329,7 +330,7 @@ ul.am-dropdown-content>li>a:focus, ul.am-dropdown-content>li>a:hover{
 	background: red;
 	top: -5px;
 	right: -5px;
-	border-radius: 100%;
+	border-radius: 16px;
 	display: none;
 }
 
@@ -881,7 +882,7 @@ ul.am-dropdown-content>li>a:focus, ul.am-dropdown-content>li>a:hover{
 	text-align: center;
 	display: none;
 }
-#cursor p{
+#cursor p,#cursor-group p{
 	line-height: 40px;
 	cursor: pointer;
 }

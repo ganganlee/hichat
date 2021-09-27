@@ -49,8 +49,9 @@ func (u *UserGroupMembersService) AddMember(str string) {
 		addRequest *RemoveMemberRequest
 		res        *userGroupMembers.AddMemberRequest
 		err        error
-		rsp        *userGroupMembers.AddMemberResponse
 		validate   = validator.New()
+		sendMsg    *SendMsgRequest
+		b          []byte
 	)
 
 	addRequest = new(RemoveMemberRequest)
@@ -69,12 +70,29 @@ func (u *UserGroupMembersService) AddMember(str string) {
 		Uuid: addRequest.Uuid,
 	}
 
-	if rsp, err = u.membersRpc.AddMember(context.TODO(), res); err != nil {
+	if _, err = u.membersRpc.AddMember(context.TODO(), res); err != nil {
 		core.ResponseSocketMessage(u.conn, "err", core.DecodeRpcErr(err.Error()).Error())
 		return
 	}
 
-	core.ResponseSocketMessage(u.conn, "AddMember", rsp.Msg)
+	//为成员增加缓存
+	sendMsg = &SendMsgRequest{
+		Id:          addRequest.Uuid,
+		MsgType:     "AddMember",
+		ContentType: "text",
+		Content:     "AddMember",
+		FromId:      u.uuid,
+		GroupId:     addRequest.Gid,
+	}
+	msgService := NewMessageService(u.conn, u.uuid)
+	msgService.sendMsgToGateway(sendMsg)
+
+	//返回结果
+	if b, err = json.Marshal(res); err != nil {
+		core.ResponseSocketMessage(u.conn, "err", err.Error())
+	}
+
+	core.ResponseSocketMessage(u.conn, "AddMember", string(b))
 }
 
 //删除群成员
@@ -113,6 +131,35 @@ func (u *UserGroupMembersService) RemoveMember(data string) {
 	}
 
 	core.ResponseSocketMessage(u.conn, "RemoveMember", rsp.Msg)
+}
+
+//成员主动退出群
+func (u *UserGroupMembersService) OutGroup(gid string) {
+
+	var (
+		res       *userGroupMembers.DelByMemberIdRequest
+		err       error
+		rsp       *userGroupMembers.DelByMemberIdResponse
+	)
+
+	//验证数据
+	if gid == "" {
+		core.ResponseSocketMessage(u.conn,"err","gid不能为空")
+		return
+	}
+
+	res = &userGroupMembers.DelByMemberIdRequest{
+		Gid:  gid,
+		Uuid: u.uuid,
+	}
+
+	//调用rpc方法
+	if rsp, err = u.membersRpc.DelByMemberId(context.TODO(), res); err != nil {
+		core.ResponseSocketMessage(u.conn, "err", core.DecodeRpcErr(err.Error()).Error())
+		return
+	}
+
+	core.ResponseSocketMessage(u.conn, "OutGroup", rsp.Msg)
 }
 
 //获取群成员

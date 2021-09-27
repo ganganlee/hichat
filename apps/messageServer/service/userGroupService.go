@@ -10,14 +10,16 @@ import (
 	"github.com/micro/go-micro/v2/registry/etcd"
 	"hichat.zozoo.net/apps/messageServer/common"
 	"hichat.zozoo.net/core"
+	"hichat.zozoo.net/rpc/userGroupMembers"
 	"hichat.zozoo.net/rpc/userGroups"
 )
 
 type (
 	UserGroupService struct {
-		Uuid     string                       //用户uuid
-		Conn     *websocket.Conn              //用户长连接
-		groupRpc userGroups.UserGroupsService //rpc服务
+		Uuid       string                                   //用户uuid
+		Conn       *websocket.Conn                          //用户长连接
+		groupRpc   userGroups.UserGroupsService             //rpc服务
+		membersRpc userGroupMembers.UserGroupMembersService //群rpc服务
 	}
 
 	//创建群请求
@@ -43,13 +45,15 @@ func NewUserGroupService(uuid string, conn *websocket.Conn) *UserGroupService {
 		service = micro.NewService(
 			micro.Registry(etcd.NewRegistry(registry.Addrs(common.AppCfg.Etcd.Host))),
 		)
-		groupRpc = userGroups.NewUserGroupsService(common.AppCfg.RpcServer.UserRpc, service.Client())
+		groupRpc  = userGroups.NewUserGroupsService(common.AppCfg.RpcServer.UserRpc, service.Client())
+		memberRps = userGroupMembers.NewUserGroupMembersService(common.AppCfg.RpcServer.UserRpc, service.Client())
 	)
 
 	return &UserGroupService{
-		Uuid:     uuid,
-		Conn:     conn,
-		groupRpc: groupRpc,
+		Uuid:       uuid,
+		Conn:       conn,
+		groupRpc:   groupRpc,
+		membersRpc: memberRps,
 	}
 }
 
@@ -96,9 +100,10 @@ func (u *UserGroupService) CreateGroup(res string) {
 //删除群
 func (u *UserGroupService) DelGroup(gid string) {
 	var (
-		err    error
-		rpcRes *userGroups.DelGroupRequest
-		rpcRsp *userGroups.DelGroupResponse
+		err        error
+		rpcRes     *userGroups.DelGroupRequest
+		rpcRsp     *userGroups.DelGroupResponse
+		membersRsp *userGroupMembers.MembersResponse
 	)
 
 	rpcRes = &userGroups.DelGroupRequest{
@@ -112,7 +117,37 @@ func (u *UserGroupService) DelGroup(gid string) {
 		return
 	}
 
-	core.ResponseSocketMessage(u.Conn, "createGroup", rpcRsp.Msg)
+	core.ResponseSocketMessage(u.Conn, "DelGroup", rpcRsp.Msg)
+
+	//获取群成员，发送重新加载列表的消息
+	if membersRsp, err = u.membersRpc.Members(context.TODO(), &userGroupMembers.MembersRequest{
+		Gid: gid,
+	}); err != nil {
+		core.ResponseSocketMessage(u.Conn, "err", core.DecodeRpcErr(err.Error()))
+		return
+	}
+
+	//删除所有成员数据
+	if _, err = u.membersRpc.DelMembers(context.TODO(), &userGroupMembers.DelMembersRequest{
+		Gid: gid,
+	}); err != nil {
+		core.ResponseSocketMessage(u.Conn, "err", core.DecodeRpcErr(err.Error()))
+		return
+	}
+
+	for _, item := range membersRsp.Members {
+		//发送消息
+		sendMsg := &SendMsgRequest{
+			Id:          item.Uuid,
+			MsgType:     "Refresh",
+			ContentType: "text",
+			Content:     "refresh",
+			FromId:      gid,
+			GroupId:     gid,
+		}
+		msgService := NewMessageService(u.Conn, u.Uuid)
+		msgService.sendMsgToGateway(sendMsg)
+	}
 }
 
 //获取群列表

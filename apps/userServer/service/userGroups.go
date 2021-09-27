@@ -79,8 +79,11 @@ func (u *UserGroupsService) DelGroup(res *GroupsRequest) (err error) {
 		}
 	)
 
-	//TODO 删除缓存
-	return u.model.DelByModel(rpcRes)
+	if err = u.model.DelByModel(rpcRes);err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //获取群列表

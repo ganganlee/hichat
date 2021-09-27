@@ -66,7 +66,11 @@ func (g *GatewayService) SendMsg(res *SendMsgRequest) (err error) {
 	case "ApproveFriend":
 		err = g.sendMq(res.ToId, res)
 		break
-
+	case "AddMember"://邀请入群通知
+		err = g.sendMq(res.ToId, res)
+		break
+	case "Refresh"://刷新列表通知
+		err = g.sendMq(res.ToId, res)
 	}
 
 	return err

@@ -67,7 +67,7 @@ function Groups(data) {
 
         html += `
             <div 
-            oncontextmenu="customMenu(event,'${item['gid']}','friend')" 
+            oncontextmenu="customMenu(event,'${item['gid']}','group')" 
             id="friend-${item['gid']}}" 
             class="friends_box" 
             ondblclick="chat('${item['gid']}','groupMessage')">
@@ -120,7 +120,6 @@ function GroupMembers(data) {
         close = "<i onclick='removeMembers(this)'>删除</i>";
     }
 
-    console.log(data);
     let users = [];
     let html = '';
     for (let i in data) {
@@ -221,7 +220,15 @@ function addMembers() {
  * @constructor
  */
 function AddMember(msg) {
-    jqtoast(msg)
+    jqtoast("邀请成功！");
+
+    setTimeout(function () {
+        //重新获取群成员
+        const obj = JSON.parse(msg);
+        GroupMembers(obj.gid);
+
+        chat(obj.gid, 'groupMessage');
+    },1000)
 }
 
 
@@ -271,4 +278,70 @@ function removeMembers(el) {
             event.stopPropagation();
         }
     });
+}
+
+//退出群聊
+function outGroup(gid) {
+    jqalert({
+        title: "退出提示",
+        content: "确认要退出该群吗？退出后将不在接收此群消息",
+        yestext: "确认",
+        notext: "算了",
+        yesfn: function (event) {
+            event.stopPropagation();
+
+            //发送添加成员请求
+            let json = {
+                "type": "OutGroup",
+                "service": "UserGroupMemberService",
+                "content": gid
+            }
+            ws.send(JSON.stringify(json))
+        },
+        nofn: function (event) {
+            event.stopPropagation();
+        }
+    });
+}
+
+/**
+ * 退出群通知
+ * @param msg
+ * @constructor
+ */
+function OutGroup(msg) {
+    jqtoast("退出群聊成功");
+
+    //获取群列表
+    ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
+    //重新渲染聊天记录列表
+    ws.send('{"type":"List","service":"HistoryRecordService","content":""}');
+}
+
+//删除群
+function delGroup(gid) {
+    jqalert({
+        title: "解散群提示",
+        content: "确认要解散该群吗？",
+        yestext: "确认",
+        notext: "算了",
+        yesfn: function (event) {
+            event.stopPropagation();
+
+            //发送添加成员请求
+            let json = {
+                "type": "DelGroup",
+                "service": "UserGroupsService",
+                "content": gid
+            }
+            ws.send(JSON.stringify(json))
+        },
+        nofn: function (event) {
+            event.stopPropagation();
+        }
+    });
+}
+
+function DelGroup(msg) {
+    jqtoast("解散群聊成功");
 }
