@@ -3,7 +3,7 @@
   "server_name": "hichat.file.rpc",
   "host": "0.0.0.0:8082",
   "mysql": {
-    "host": "192.168.3.11:3308",
+    "host": "192.168.31.11:3308",
     "database": "hichat_files",
     "username": "root",
     "password": "123456",
