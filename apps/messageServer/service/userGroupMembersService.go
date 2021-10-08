@@ -137,14 +137,14 @@ func (u *UserGroupMembersService) RemoveMember(data string) {
 func (u *UserGroupMembersService) OutGroup(gid string) {
 
 	var (
-		res       *userGroupMembers.DelByMemberIdRequest
-		err       error
-		rsp       *userGroupMembers.DelByMemberIdResponse
+		res *userGroupMembers.DelByMemberIdRequest
+		err error
+		rsp *userGroupMembers.DelByMemberIdResponse
 	)
 
 	//验证数据
 	if gid == "" {
-		core.ResponseSocketMessage(u.conn,"err","gid不能为空")
+		core.ResponseSocketMessage(u.conn, "err", "gid不能为空")
 		return
 	}
 
@@ -159,6 +159,11 @@ func (u *UserGroupMembersService) OutGroup(gid string) {
 		return
 	}
 
+	//删除聊天列表
+	var historyServer = NewHistoryRecord(u.conn, u.uuid)
+	historyServer.RemoveHistoryRecord(gid)
+
+	//返回结果
 	core.ResponseSocketMessage(u.conn, "OutGroup", rsp.Msg)
 }
 

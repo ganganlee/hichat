@@ -1,4 +1,6 @@
 function HistoryRecord(data) {
+    $('.user_list').html('');
+
     //过滤数据为空的列表
     let keys = Object.keys(data);
     if (keys.length === 0) {

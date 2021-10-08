@@ -37,7 +37,6 @@ type (
 )
 
 //用户群服务
-
 func NewUserGroupService(uuid string, conn *websocket.Conn) *UserGroupService {
 
 	//注册用户rpc服务
@@ -136,6 +135,11 @@ func (u *UserGroupService) DelGroup(gid string) {
 	}
 
 	for _, item := range membersRsp.Members {
+
+		//删除好友聊天列表
+		var historyServer = NewHistoryRecord(u.Conn, item.Uuid)
+		historyServer.RemoveHistoryRecord(gid)
+
 		//发送消息
 		sendMsg := &SendMsgRequest{
 			Id:          item.Uuid,

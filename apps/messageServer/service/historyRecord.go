@@ -165,6 +165,7 @@ func (h *HistoryRecord) RemoveHistoryRecord(id string) {
 	}
 
 	redisKey = "historyRecord:uuid:" + h.uuid + ":hash"
+
 	if err = core.CLusterClient.HDel(redisKey, id).Err(); err != nil {
 		core.ResponseSocketMessage(h.conn, "err", err.Error())
 		return

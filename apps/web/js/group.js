@@ -310,8 +310,7 @@ function outGroup(gid) {
  * @constructor
  */
 function OutGroup(msg) {
-    jqtoast("退出群聊成功");
-
+    // jqtoast("退出群聊成功");
     //获取群列表
     ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
     //重新渲染聊天记录列表
