@@ -123,8 +123,6 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 		return
 	}
 
-	fmt.Println(clientMessage)
-
 	switch clientMessage.Service {
 	case "UserService": //用户相关服务
 		var (

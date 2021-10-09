@@ -4,6 +4,7 @@ import (
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/registry/etcd"
+	limiter "github.com/micro/go-plugins/wrapper/ratelimiter/uber/v2"
 	xorm2 "github.com/xormplus/xorm"
 	"hichat.zozoo.net/apps/gatewayServer/common"
 	"hichat.zozoo.net/apps/gatewayServer/models"
@@ -52,6 +53,10 @@ func main() {
 	service = micro.NewService(
 		micro.Name(cfg.ServerName),
 		micro.Registry(etcd.NewRegistry(registry.Addrs(cfg.Etcd.Host))),
+		//限流
+		micro.WrapHandler(
+			limiter.NewHandlerWrapper(10),
+			),
 	)
 	service.Init()
 

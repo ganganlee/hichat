@@ -4,6 +4,7 @@ import (
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/registry/etcd"
+	"github.com/micro/go-plugins/wrapper/breaker/hystrix/v2"
 	xorm2 "github.com/xormplus/xorm"
 	"hichat.zozoo.net/apps/userServer/common"
 	"hichat.zozoo.net/apps/userServer/model"
@@ -52,6 +53,9 @@ func main() {
 	service = micro.NewService(
 		micro.Name(cfg.ServerName),
 		micro.Registry(etcd.NewRegistry(registry.Addrs(cfg.Etcd.Host))),
+		micro.WrapClient(
+			hystrix.NewClientWrapper(),
+			),
 	)
 	service.Init()
 

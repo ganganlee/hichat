@@ -84,11 +84,6 @@ func (g *GatewayService) sendGroupMessage(msg *SendMsgRequest) (err error) {
 		return err
 	}
 
-	//消息入库
-	if err = g.saveMsg(msg); err != nil {
-		return err
-	}
-
 	var (
 		rsp *userGroupMembers.MembersResponse
 	)

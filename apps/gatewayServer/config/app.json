@@ -15,7 +15,7 @@
     "username": "root",
     "password": "123456",
     "charset": "utf8mb4",
-    "show_sql": true,
+    "show_sql": false,
     "max_idle": 10,
     "max_active": 100
   },
