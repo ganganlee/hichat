@@ -1,0 +1,27 @@
+//搜索消息rpc服务
+syntax = "proto3";
+option go_package = "./;messageSearch";
+
+//消息结构体
+message msg{
+  string content_type = 1;
+  string content = 2;
+}
+//搜索消息请求
+message searchRequest{
+  string from_id = 1;
+  string to_id = 2;
+  string keywords = 3;
+  uint32 page = 4;
+  uint32 page_size = 5;
+}
+//搜索消息响应
+message searchResponse{
+  uint32 total = 1;
+  repeated msg msg = 2;
+}
+
+service searchMessageService{
+  //搜索消息
+  rpc search(searchRequest) returns(searchResponse);
+}

@@ -195,7 +195,7 @@ function chat(token, msgType) {
         AppendHistoryHtml(res);
 
         //将消息加入到缓存
-        ws.send('{"type":"SetHistoryRecord","service":"HistoryRecordService","content":"{\\"type\\":\\"' + msgType + '\\",\\"id\\":\\"' + token + '\\"}"}')
+        ws.send('{"type":"SetHistoryRecord","services":"HistoryRecordService","content":"{\\"type\\":\\"' + msgType + '\\",\\"id\\":\\"' + token + '\\"}"}')
     }
 
     //设置聊天dom的用户信息
@@ -212,7 +212,7 @@ function chat(token, msgType) {
     dom.text(0);
     dom.hide();
 
-    ws.send('{"type":"ClearUnread","service":"HistoryRecordService","content":"' + token + '"}');
+    ws.send('{"type":"ClearUnread","services":"HistoryRecordService","content":"' + token + '"}');
 
     //增加当前列表聊天样式
     $('.user_list li').removeClass('user_active');
@@ -236,7 +236,7 @@ function chat(token, msgType) {
     setAllUnread();
 
     //获取聊天记录
-    ws.send('{"type":"HistoryInfo","service":"HistoryRecordService","content":"' + token + '"}');
+    ws.send('{"type":"HistoryInfo","services":"HistoryRecordService","content":"' + token + '"}');
 }
 
 /**
@@ -300,11 +300,11 @@ function websocket() {
         messageAudio.muted = false;
 
         //获取好友列表
-        ws.send('{"type":"Friends","service":"UserService"}');
+        ws.send('{"type":"Friends","services":"UserService"}');
         //获取群列表
-        ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
+        ws.send('{"type":"Groups","services":"UserGroupsService","content":""}');
         //获取聊天记录列表
-        ws.send('{"type":"List","service":"HistoryRecordService","content":""}');
+        ws.send('{"type":"List","services":"HistoryRecordService","content":""}');
     };
 
     //接收到消息时触发
@@ -692,7 +692,7 @@ function searchUser() {
         return;
     }
 
-    ws.send('{"type":"FindByName","service":"UserService","content":"' + val + '"}');
+    ws.send('{"type":"FindByName","services":"UserService","content":"' + val + '"}');
 }
 
 /**
@@ -761,7 +761,7 @@ function addUser() {
     }
 
     const token = $('#friends-hook .active').data('token');
-    ws.send('{"type":"ApplyFriend","service":"UserService","content":"' + token + '"}');
+    ws.send('{"type":"ApplyFriend","services":"UserService","content":"' + token + '"}');
     changeModalStatus('#friends-hook', 'hide');
 }
 
@@ -780,19 +780,19 @@ function friendApprove(token, username, el) {
         notext: '拒绝',
         yesfn: function () {
             //同意
-            ws.send('{"type":"ApproveFriend","service":"UserService","content":"' + token + '"}');
+            ws.send('{"type":"ApproveFriend","services":"UserService","content":"' + token + '"}');
             //增加提示
             setTimeout(function () {
-                ws.send('{"type":"Friends","service":"UserService"}')
+                ws.send('{"type":"Friends","services":"UserService"}')
             }, 1500);
             return false;
         },
         nofn: function () {
             //拒绝
-            ws.send('{"type":"RefuseFriend","service":"UserService","content":"' + token + '"}');
+            ws.send('{"type":"RefuseFriend","services":"UserService","content":"' + token + '"}');
             //增加提示
             setTimeout(function () {
-                ws.send('{"type":"Friends","service":"UserService"}')
+                ws.send('{"type":"Friends","services":"UserService"}')
             }, 1500);
         }
     });
@@ -806,7 +806,7 @@ function friendApprove(token, username, el) {
 function ApproveFriend(id) {
     jqtoast('添加好友成功，你们现在可以聊天了')
     chat(id, 'privateMessage');
-    ws.send('{"type":"Friends","service":"UserService"}');
+    ws.send('{"type":"Friends","services":"UserService"}');
     $('#input_box').html('好友申请通过，咱们可以聊天了');
     sendMsg();
 }
@@ -1072,7 +1072,7 @@ function customMenu(event, friendToken, origin) {
  */
 function delHistory(id) {
     //发送删除请求
-    ws.send('{"type":"RemoveHistoryRecord","service":"HistoryRecordService","content":"' + id + '"}');
+    ws.send('{"type":"RemoveHistoryRecord","services":"HistoryRecordService","content":"' + id + '"}');
     //删除列表
     $('.history-' + id).remove();
 
@@ -1203,19 +1203,19 @@ function MqMsg(res) {
             break;
         case 'ApplyFriend': //好友申请通知
             //重新获取列表
-            ws.send('{"type":"Friends","service":"UserService"}');
+            ws.send('{"type":"Friends","services":"UserService"}');
             break;
         case 'ApproveFriend': //同意申请通知
-            ws.send('{"type":"Friends","service":"UserService"}');
+            ws.send('{"type":"Friends","services":"UserService"}');
             break;
         case 'AddMember'://入群通知
-            ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
+            ws.send('{"type":"Groups","services":"UserGroupsService","content":""}');
             break
         case 'Refresh'://刷新好友列表和聊天列表
             //获取群列表
-            ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
+            ws.send('{"type":"Groups","services":"UserGroupsService","content":""}');
             //重新渲染聊天记录列表
-            ws.send('{"type":"List","service":"HistoryRecordService","content":""}');
+            ws.send('{"type":"List","services":"HistoryRecordService","content":""}');
             break;
     }
 }

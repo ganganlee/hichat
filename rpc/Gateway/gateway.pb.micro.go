@@ -33,13 +33,13 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Api Endpoints for GatewayService service
+// Api Endpoints for GatewayService services
 
 func NewGatewayServiceEndpoints() []*api.Endpoint {
 	return []*api.Endpoint{}
 }
 
-// Client API for GatewayService service
+// Client API for GatewayService services
 
 type GatewayService interface {
 	//发送消息到网关
@@ -68,7 +68,7 @@ func (c *gatewayService) SendMsg(ctx context.Context, in *SendMsgRequest, opts .
 	return out, nil
 }
 
-// Server API for GatewayService service
+// Server API for GatewayService services
 
 type GatewayServiceHandler interface {
 	//发送消息到网关

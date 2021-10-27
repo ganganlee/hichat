@@ -6,7 +6,7 @@ var ChatMembers = [];
 function createGroup(res) {
     if (typeof res !== "undefined") {
         jqtoast('群创建成功');
-        ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
+        ws.send('{"type":"Groups","services":"UserGroupsService","content":""}');
         return
     }
 
@@ -34,14 +34,14 @@ function sendCreateGroup() {
         return false;
     }
 
-    ws.send('{"type":"CreateGroup","service":"UserGroupsService","content":"{\\"name\\":\\"' + name + '\\",\\"description\\":\\"' + description + '\\",\\"avatar\\":\\"' + avatar + '\\"}"}')
+    ws.send('{"type":"CreateGroup","services":"UserGroupsService","content":"{\\"name\\":\\"' + name + '\\",\\"description\\":\\"' + description + '\\",\\"avatar\\":\\"' + avatar + '\\"}"}')
 
     changeModalStatus('#user-group-hook', 'hide');
 }
 
 //修改群信息
 function updateGroup() {
-    ws.send('{"type":"EditGroup","service":"UserGroupsService","content":"{\\"name\\":\\"修改群\\",\\"description\\":\\"修改群\\",\\"avatar\\":\\"https://p5.toutiaoimg.com/origin/pgc-image/06be98af5dd4491993ac131c9a3410cf\\",\\"gid\\":\\"38de63fd-d1a5-4ccb-9885-334f91ae0bda\\"}"}')
+    ws.send('{"type":"EditGroup","services":"UserGroupsService","content":"{\\"name\\":\\"修改群\\",\\"description\\":\\"修改群\\",\\"avatar\\":\\"https://p5.toutiaoimg.com/origin/pgc-image/06be98af5dd4491993ac131c9a3410cf\\",\\"gid\\":\\"38de63fd-d1a5-4ccb-9885-334f91ae0bda\\"}"}')
 
     changeModalStatus('#user-group-hook', 'hide');
 }
@@ -104,7 +104,7 @@ function groupSetting(gid, e) {
 function GroupMembers(data) {
     if (typeof data === "string") {
         //发送获取群成员请求
-        ws.send('{"type":"GroupMembers","service":"UserGroupMemberService","content":"' + data + '"}')
+        ws.send('{"type":"GroupMembers","services":"UserGroupMemberService","content":"' + data + '"}')
         return false;
     }
 
@@ -312,9 +312,9 @@ function outGroup(gid) {
 function OutGroup(msg) {
     // jqtoast("退出群聊成功");
     //获取群列表
-    ws.send('{"type":"Groups","service":"UserGroupsService","content":""}');
+    ws.send('{"type":"Groups","services":"UserGroupsService","content":""}');
     //重新渲染聊天记录列表
-    ws.send('{"type":"List","service":"HistoryRecordService","content":""}');
+    ws.send('{"type":"List","services":"HistoryRecordService","content":""}');
 }
 
 //删除群

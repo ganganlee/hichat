@@ -33,13 +33,13 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Api Endpoints for UserService service
+// Api Endpoints for UserService services
 
 func NewUserServiceEndpoints() []*api.Endpoint {
 	return []*api.Endpoint{}
 }
 
-// Client API for UserService service
+// Client API for UserService services
 
 type UserService interface {
 	//用户注册
@@ -116,7 +116,7 @@ func (c *userService) FindByUsername(ctx context.Context, in *FindByUsernameRequ
 	return out, nil
 }
 
-// Server API for UserService service
+// Server API for UserService services
 
 type UserServiceHandler interface {
 	//用户注册

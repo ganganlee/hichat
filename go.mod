@@ -9,27 +9,34 @@ require (
 	github.com/agrison/go-tablib v0.0.0-20160310143025-4930582c22ee // indirect
 	github.com/agrison/mxj v0.0.0-20160310142625-1269f8afb3b4 // indirect
 	github.com/bndr/gotabulate v1.1.2 // indirect
+	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.7.4
-	github.com/go-basic/uuid v1.0.0 // indirect
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/protobuf v1.5.2
+	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/uuid v1.1.1
+	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
+	github.com/mattn/go-sqlite3 v1.14.8 // indirect
 	github.com/micro/go-micro/v2 v2.9.1
-	github.com/micro/go-plugins v1.5.1 // indirect
 	github.com/micro/go-plugins/wrapper/breaker/hystrix/v2 v2.9.1
-	github.com/micro/go-plugins/wrapper/ratelimiter/uber/v2 v2.9.1 // indirect
+	github.com/micro/go-plugins/wrapper/ratelimiter/uber/v2 v2.9.1
+	github.com/olivere/elastic/v7 v7.0.29
+	github.com/onsi/ginkgo v1.10.1 // indirect
+	github.com/onsi/gomega v1.7.0 // indirect
+	github.com/prometheus/client_golang v1.2.1 // indirect
 	github.com/streadway/amqp v1.0.0
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tealeg/xlsx v1.0.5 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
+	github.com/withlin/canal-go v1.1.1
 	github.com/xormplus/builder v0.0.0-20200331055651-240ff40009be // indirect
 	github.com/xormplus/xorm v0.0.0-20210822100304-4e1d4fcc1e67
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect

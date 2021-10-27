@@ -1,0 +1,24 @@
+{
+  "version": "0.0.1",
+  "server_name": "hichat.message.search.rpc",
+  "etcd": {
+    "host": "192.168.31.11:2379",
+    "username": "",
+    "password": ""
+  },
+  "es": {
+    "host": "http://192.168.31.11:9200",
+    "username": "elastic",
+    "password": "123456",
+    "index": "hichat_message"
+  },
+  "canal_config": {
+    "address": "192.168.31.11",
+    "port": 11111,
+    "username": "canal",
+    "password": "canal",
+    "destination": "message",
+    "so_time_out": 60000,
+    "idle_time_out": 3600000
+  }
+}

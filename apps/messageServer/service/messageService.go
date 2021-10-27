@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
 	"github.com/micro/go-micro/v2"
@@ -43,7 +42,7 @@ func NewMessageService(conn *websocket.Conn, uuid string) *MessageService {
 			micro.Registry(etcd.NewRegistry(registry.Addrs(common.AppCfg.Etcd.Host))),
 			micro.WrapClient(
 				hystrix.NewClientWrapper(),
-				),
+			),
 		)
 
 		gatewayRpc = gateway.NewGatewayService(common.AppCfg.RpcServer.GatewayRpc, service.Client())

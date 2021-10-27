@@ -24,7 +24,7 @@ function HistoryRecord(data) {
                 info = GROUPS[item.id]
                 if (!GROUPS.hasOwnProperty(item.id)) {
                     //需要删除聊天列表
-                    ws.send('{"type":"RemoveHistoryRecord","service":"HistoryRecordService","content":"' + item.id + '"}');
+                    ws.send('{"type":"RemoveHistoryRecord","services":"HistoryRecordService","content":"' + item.id + '"}');
                     break;
                 }
                 username = info.username;
@@ -36,7 +36,7 @@ function HistoryRecord(data) {
                 avatar = info.avatar;
                 break;
             default:
-                ws.send('{"type":"RemoveHistoryRecord","service":"HistoryRecordService","content":"' + item.id + '"}');
+                ws.send('{"type":"RemoveHistoryRecord","services":"HistoryRecordService","content":"' + item.id + '"}');
         }
 
         if (typeof username === "undefined") {

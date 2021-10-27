@@ -18,7 +18,7 @@ type (
 	//通用消息结构体
 	ClientMessage struct {
 		Type    string `json:"type" validate:"required"`    //消息类型
-		Service string `json:"service" validate:"required"` //使用的服务
+		Service string `json:"services" validate:"required"` //使用的服务
 		Content string `json:"content"`                     //消息类容
 	}
 

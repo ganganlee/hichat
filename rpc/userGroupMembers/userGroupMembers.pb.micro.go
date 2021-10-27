@@ -33,13 +33,13 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Api Endpoints for UserGroupMembersService service
+// Api Endpoints for UserGroupMembersService services
 
 func NewUserGroupMembersServiceEndpoints() []*api.Endpoint {
 	return []*api.Endpoint{}
 }
 
-// Client API for UserGroupMembersService service
+// Client API for UserGroupMembersService services
 
 type UserGroupMembersService interface {
 	//添加群成员
@@ -116,7 +116,7 @@ func (c *userGroupMembersService) Members(ctx context.Context, in *MembersReques
 	return out, nil
 }
 
-// Server API for UserGroupMembersService service
+// Server API for UserGroupMembersService services
 
 type UserGroupMembersServiceHandler interface {
 	//添加群成员
