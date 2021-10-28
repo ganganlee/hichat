@@ -1,16 +1,29 @@
 package common
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/withlin/canal-go/client"
 	pbe "github.com/withlin/canal-go/protocol/entry"
+	"hichat.zozoo.net/core"
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
 //canal-go服务
+
+type Message struct {
+	Id          int       `json:"id"`
+	FromId      string    `json:"from_id"`
+	ToId        string    `json:"to_id"`
+	MsgType     string    `json:"msg_type"`
+	ContentType string    `json:"content_type"`
+	Content     string    `json:"content"`
+	CreateTime  time.Time `json:"create_time"`
+}
 
 //连接canal
 func InitCanal(address string, port int, username string, password string, destination string, soTimeOut int32, idleTimeOut int32) {
@@ -53,57 +66,83 @@ func InitCanal(address string, port int, username string, password string, desti
 
 func printEntry(entrys []pbe.Entry) {
 
+	var err error
 	for _, entry := range entrys {
 		if entry.GetEntryType() == pbe.EntryType_TRANSACTIONBEGIN || entry.GetEntryType() == pbe.EntryType_TRANSACTIONEND {
 			continue
 		}
 		rowChange := new(pbe.RowChange)
 
-		err := proto.Unmarshal(entry.GetStoreValue(), rowChange)
-		checkError(err)
+		if err = proto.Unmarshal(entry.GetStoreValue(), rowChange); err != nil {
+			fmt.Printf("Fatal error: %s\n", err.Error())
+			os.Exit(1)
+		}
 
 		eventType := rowChange.GetEventType()
-		header := entry.GetHeader()
-
-		fmt.Println("|-|-|-|-|-|-|-|-|-|-|-|-|")
-		//获取操作的日志文件
-		fmt.Println("log:", header.GetLogfileName())
-		//获取操作的行号
-		fmt.Println("offset:", header.GetLogfileOffset())
-		//获取操作的数据库名称
-		fmt.Println("database:", header.GetSchemaName())
-		//获取操作的表名称
-		fmt.Println("table:", header.GetTableName())
-		//获取操作类型
-		fmt.Println("operation:", header.GetEventType())
 
 		for _, rowData := range rowChange.GetRowDatas() {
 			if eventType == pbe.EventType_DELETE {
 				//删除操作
-				printColumn(rowData.GetBeforeColumns())
+				val := printColumn(rowData.GetBeforeColumns())
+				if err = core.Es.DelDoc(AppCfg.Es.Index, val["id"]); err != nil {
+					fmt.Println("删除文档失败失败 err:", err.Error())
+					continue
+				}
+
 			} else if eventType == pbe.EventType_INSERT {
 				//新增操作
-				printColumn(rowData.GetAfterColumns())
+				val := printColumn(rowData.GetAfterColumns())
+				message := new(Message)
+				message.FromId = val["from_id"]
+				message.ToId = val["to_id"]
+				message.MsgType = val["msg_type"]
+				message.ContentType = val["content_type"]
+				message.Content = val["content"]
+				message.Id, _ = strconv.Atoi(val["id"])
+
+				message.CreateTime, err = time.Parse("2006-01-02 15:04:05", val["create_time"])
+				if err != nil {
+					fmt.Println("时间转换失败 err:", err.Error())
+					continue
+				}
+
+				b, _ := json.Marshal(message)
+				if err = core.Es.AddDoc(AppCfg.Es.Index, val["id"], string(b)); err != nil {
+					fmt.Println("添加数据到es失败 err:", err.Error())
+				}
 			} else {
 				//修改操作
-				fmt.Println("-------> before")
-				printColumn(rowData.GetBeforeColumns())
-				fmt.Println("-------> after")
-				printColumn(rowData.GetAfterColumns())
+				val := printColumn(rowData.GetAfterColumns())
+				var m map[string]interface{}
+				m = make(map[string]interface{}, 0)
+
+				m["from_id"] = val["from_id"]
+				m["to_id"] = val["to_id"]
+				m["msg_type"] = val["msg_type"]
+				m["content_type"] = val["content_type"]
+				m["content"] = val["content"]
+				m["create_time"], err = time.Parse("2006-01-02 15:04:05", val["create_time"])
+
+				if err != nil {
+					fmt.Println("时间转换失败 err:", err.Error())
+					continue
+				}
+
+				if err = core.Es.Update(AppCfg.Es.Index, val["id"], m); err != nil {
+					fmt.Println("修改数据到es失败 err:", err.Error())
+				}
 			}
 		}
 	}
 }
 
-func printColumn(columns []*pbe.Column) {
-	for _, col := range columns {
-		fmt.Println(fmt.Sprintf("%s : %s  update= %t", col.GetName(), col.GetValue(), col.GetUpdated()))
-	}
-}
+//获取table修改记录
+func printColumn(columns []*pbe.Column) map[string]string {
+	var val map[string]string
 
-func checkError(err error) {
-	if err != nil {
-		fmt.Printf("Fatal error: %s\n", err.Error())
-		os.Exit(1)
+	val = make(map[string]string, 0)
+	for _, col := range columns {
+		val[col.GetName()] = col.GetValue()
 	}
+	return val
 }

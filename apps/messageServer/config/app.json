@@ -5,7 +5,8 @@
   "mq_host": "192.168.31.11:5672",
   "rpc_server": {
     "user_rpc": "hichat.user.rpc",
-    "gateway_rpc": "hichat.message.rpc"
+    "gateway_rpc": "hichat.message.rpc",
+    "search_rpc": "hichat.message.search.rpc"
   },
   "etcd": {
     "host": "192.168.31.11:2379",

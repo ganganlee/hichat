@@ -27,6 +27,7 @@ type (
 	RpcServer struct {
 		UserRpc    string `json:"user_rpc"`
 		GatewayRpc string `json:"gateway_rpc"`
+		SearchRpc  string `json:"search_rpc"`
 	}
 	Config struct {
 		Version    string    `json:"version"`

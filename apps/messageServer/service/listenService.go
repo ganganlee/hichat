@@ -17,9 +17,9 @@ type (
 
 	//通用消息结构体
 	ClientMessage struct {
-		Type    string `json:"type" validate:"required"`    //消息类型
+		Type    string `json:"type" validate:"required"`     //消息类型
 		Service string `json:"services" validate:"required"` //使用的服务
-		Content string `json:"content"`                     //消息类容
+		Content string `json:"content"`                      //消息类容
 	}
 
 	//mq消息结构体
@@ -194,6 +194,22 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 		//调用反射得到的方法
 		_ = f
 		break
+
+	case "messageSearchService": //用户搜索消息
+		var (
+			message = NewMessageSearch(Conns[uuid], uuid)
+			f       []reflect.Value
+		)
+
+		if f, err = core.CallFuncByName(message, clientMessage.Type, clientMessage.Content); err != nil {
+			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
+			return
+		}
+
+		//调用反射得到的方法
+		_ = f
+		break
+
 	default:
 		fmt.Println(clientMessage.Content)
 	}
@@ -220,7 +236,11 @@ func (l *ListenService) receiveMqMsg() {
 	for msg := range msgs {
 		//将数据发送至具体方法处理
 		go l.handleMqMsg(msg.Body)
-		msg.Ack(false) //Ack
+
+		//Ack
+		if err = msg.Ack(false); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 

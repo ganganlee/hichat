@@ -45,3 +45,42 @@ func (e *Elasticsearch) DelDoc(index, id string) (err error) {
 	_, err = e.client.Delete().Index(index).Id(id).Do(context.TODO())
 	return err
 }
+
+//修改文档
+func (e *Elasticsearch) Update(index, id string, content map[string]interface{}) (err error) {
+	_, err = e.client.Update().Index(index).Id(id).Doc(content).Do(context.TODO())
+	return err
+}
+
+//搜索文档
+func (e *Elasticsearch) Search(index string, keywords string, fromId string, toId string, page int, pageSize int) (total int64, list []*elastic.SearchHit, err error) {
+
+	var (
+		res  *elastic.SearchResult
+		from int
+	)
+
+	from = (page - 1) * pageSize
+	//控制搜索条件
+	fromIdQuery := elastic.NewMatchQuery("from_id", fromId)
+	toIdQuery := elastic.NewMatchQuery("to_id", toId)
+	keywordsQuery := elastic.NewMatchQuery("content", keywords)
+	b := elastic.NewBoolQuery()
+	b.Must(fromIdQuery, toIdQuery, keywordsQuery)
+	q := elastic.NewQueryRescorer(b)
+
+	//控制高亮
+	h := elastic.NewHighlight()
+	h.Fields(elastic.NewHighlighterField("content"))
+
+	res, err = e.client.Search().Index(index).Query(q).Highlight(h).Source("content").Size(pageSize).From(from).Do(context.TODO())
+	if err != nil {
+		return 0, nil, err
+	}
+
+	//总条数
+	total = res.Hits.TotalHits.Value
+	list = res.Hits.Hits
+
+	return total, list, err
+}
