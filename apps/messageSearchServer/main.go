@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/registry/etcd"
-	"github.com/micro/go-plugins/wrapper/breaker/hystrix/v2"
 	"hichat.zozoo.net/apps/messageSearchServer/common"
 	"hichat.zozoo.net/apps/messageSearchServer/rpc"
 	"hichat.zozoo.net/apps/messageSearchServer/services"
@@ -52,18 +52,19 @@ func main() {
 	//连接canal
 	go common.InitCanal(cfg.CanalConfig.Address, cfg.CanalConfig.Port, cfg.CanalConfig.Username, cfg.CanalConfig.Password, cfg.CanalConfig.Destination, cfg.CanalConfig.SoTimeOut, cfg.CanalConfig.IdleTimeOut)
 
+	fmt.Println(cfg)
+	//初始化微服务
 	service := micro.NewService(
 		micro.Name(cfg.ServerName),
 		micro.Registry(etcd.NewRegistry(registry.Addrs(cfg.Etcd.Host))),
-		micro.WrapClient(
-			hystrix.NewClientWrapper(),
-		),
 	)
 	service.Init()
 
 	//注册搜索服务
 	messageSearchService := services.NewMessageSearchService()
-	messageSearch.RegisterSearchMessageServiceHandler(service.Server(), rpc.NewMessageSearchRpc(messageSearchService))
+	if err = messageSearch.RegisterSearchMessageServiceHandler(service.Server(), rpc.NewMessageSearchRpc(messageSearchService)); err != nil {
+		log.Fatalf("注册微服务失败 err:%v\n", err)
+	}
 
 	//运行微服务
 	if err = service.Run(); err != nil {

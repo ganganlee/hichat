@@ -33,13 +33,13 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Api Endpoints for SearchMessageService services
+// Api Endpoints for SearchMessageService service
 
 func NewSearchMessageServiceEndpoints() []*api.Endpoint {
 	return []*api.Endpoint{}
 }
 
-// Client API for SearchMessageService services
+// Client API for SearchMessageService service
 
 type SearchMessageService interface {
 	//搜索消息
@@ -59,7 +59,7 @@ func NewSearchMessageService(name string, c client.Client) SearchMessageService 
 }
 
 func (c *searchMessageService) Search(ctx context.Context, in *SearchRequest, opts ...client.CallOption) (*SearchResponse, error) {
-	req := c.c.NewRequest(c.name, "SearchMessageService.search", in)
+	req := c.c.NewRequest(c.name, "SearchMessageService.Search", in)
 	out := new(SearchResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
@@ -68,7 +68,7 @@ func (c *searchMessageService) Search(ctx context.Context, in *SearchRequest, op
 	return out, nil
 }
 
-// Server API for SearchMessageService services
+// Server API for SearchMessageService service
 
 type SearchMessageServiceHandler interface {
 	//搜索消息

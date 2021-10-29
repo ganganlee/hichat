@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"hichat.zozoo.net/apps/messageSearchServer/services"
 	"hichat.zozoo.net/rpc/messageSearch"
@@ -36,12 +37,19 @@ func (m *MessageSearchRpc) Search(ctx context.Context, res *messageSearch.Search
 		Page:     res.Page,
 	}
 
+	fmt.Println(params)
+
 	//验证参数
 	if err = validate.Struct(params); err != nil {
 		return err
 	}
 
 	//调用服务方法进行搜索
-	m.service.Search(params)
+	if err = m.service.Search(params);err != nil {
+		return err
+	}
+
+
+	rsp.Total = 100
 	return nil
 }

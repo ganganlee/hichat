@@ -232,6 +232,8 @@ function chat(token, msgType) {
             break;
     }
 
+    $('#search-message').attr('onclick', 'groupSetting("' + token + '",event,"search")');
+
     $('#send').data('msg_type', msgType);
     setAllUnread();
 
@@ -500,7 +502,7 @@ function sendMsg() {
     //定义聊天类型
     let data = {
         "type": "SendMsg",
-        "service": "messageService",
+        "services": "messageService",
         "content": JSON.stringify({
             "id": CHATInfo.uuid,
             "content": msg,
@@ -659,6 +661,10 @@ function renderUserInfo() {
     AjaxGet('/v1/user/info', '', function (json) {
         if (json.code !== 200) {
             jqtoast(json.msg);
+            delCookie('token');
+            setTimeout(function () {
+                window.location.href = '/login.html';
+            },1500);
             return;
         }
 

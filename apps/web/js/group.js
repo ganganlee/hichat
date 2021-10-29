@@ -89,9 +89,20 @@ function Groups(data) {
  * @param data
  * @param e
  */
-function groupSetting(gid, e) {
+function groupSetting(gid, e,type) {
     e.stopPropagation();
-    GroupMembers(gid);
+
+    if(typeof type === "undefined"){
+        //获取群成员
+        GroupMembers(gid);
+        $('#sidebar-information').show();
+        $('#sidebar-tool').fadeIn();
+        return false;
+    }
+
+    //搜索消息
+    $('#sidebar-information').hide();
+    $('#sidebar-search').show();
     $('#sidebar-tool').fadeIn();
 }
 

@@ -33,6 +33,9 @@ func (m *MessageSearchService) Search(res *SearchRequest) (err error) {
 		total int64
 		list  []*elastic.SearchHit
 	)
+
+	fmt.Println(res)
+
 	total, list, err = core.Es.Search(index, res.Keywords, res.FromId, res.ToId, int(res.Page), int(res.PageSize))
 	if err != nil {
 		return err

@@ -33,13 +33,13 @@ var _ context.Context
 var _ client.Option
 var _ server.Option
 
-// Api Endpoints for UserFriendsService services
+// Api Endpoints for UserFriendsService service
 
 func NewUserFriendsServiceEndpoints() []*api.Endpoint {
 	return []*api.Endpoint{}
 }
 
-// Client API for UserFriendsService services
+// Client API for UserFriendsService service
 
 type UserFriendsService interface {
 	//获取好友列表
@@ -116,7 +116,7 @@ func (c *userFriendsService) DelFriends(ctx context.Context, in *DelFriendsReque
 	return out, nil
 }
 
-// Server API for UserFriendsService services
+// Server API for UserFriendsService service
 
 type UserFriendsServiceHandler interface {
 	//获取好友列表

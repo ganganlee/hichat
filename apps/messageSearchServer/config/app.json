@@ -1,6 +1,6 @@
 {
   "version": "0.0.1",
-  "server_name": "hichat.message.search.rpc",
+  "server_name": "hichat.search.rpc",
   "etcd": {
     "host": "192.168.31.11:2379",
     "username": "",

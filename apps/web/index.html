@@ -169,7 +169,7 @@
                         <input type="file" id="chat-upload" onchange="upload('#chat-upload',handleChatUpload)">
                     </a>
                     <a href="javascript:;"></a>
-                    <a href="javascript:;"></a>
+                    <a href="javascript:;" id="search-message"></a>
                     <a href="javascript:;"></a>
                     <a href="javascript:;"></a>
                 </div>
@@ -183,25 +183,47 @@
             <!--侧边栏内容-->
             <div id="sidebar-tool">
                 <p class="sidebar-header"><span onclick="$('#sidebar-tool').fadeOut()">关闭</span></p>
-                <div class="sidebar-users">
-                    <ul>
-                        <li class="add-member" onclick="showAddMembersDom(event)">＋</li>
-                    </ul>
-                    <p class="show-all-members">查看更多成员></p>
-                </div>
-                <div class="sidebar-info">
-                    <div class="sidebar-item-wrapper ">
-                        <p>群聊名称</p>
-                        <p class="sidebar-group-name">学习群 <span> > </span></p>
+                <div id="sidebar-information">
+                    <div class="sidebar-users">
+                        <ul>
+                            <li class="add-member" onclick="showAddMembersDom(event)">＋</li>
+                        </ul>
+                        <p class="show-all-members">查看更多成员></p>
                     </div>
-                    <div class="sidebar-item-wrapper">
-                        <p>群聊公告</p>
-                        <p class="sidebar-group-description">学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群
-                            <span> > </span></p>
+                    <div class="sidebar-info">
+                        <div class="sidebar-item-wrapper ">
+                            <p>群聊名称</p>
+                            <p class="sidebar-group-name">学习群 <span> > </span></p>
+                        </div>
+                        <div class="sidebar-item-wrapper">
+                            <p>群聊公告</p>
+                            <p class="sidebar-group-description">学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群学习群
+                                <span> > </span></p>
+                        </div>
+                    </div>
+                    <div class="sidebar-info">
+                        <p style="text-align: center;color: red;font-weight: bold">退出群</p>
                     </div>
                 </div>
-                <div class="sidebar-info">
-                    <p style="text-align: center;color: red;font-weight: bold">退出群</p>
+                <div id="sidebar-search">
+                    <div id="search-nav">
+                        <div class="active">全部</div>
+                        <div>文件</div>
+                        <div>图片/视频</div>
+                    </div>
+                    <div id="search-input">
+                        <input type="text" name="message-search" placeholder="请输入搜索内容">
+                        <span onclick="searchMessage()">搜索</span>
+                    </div>
+                    <div id="search-content">
+                        <p id="search-total">1条相关记录</p>
+                        <ul>
+                            <li>
+                                <p>干干了二 <span>10-28 11:12:13</span></p>
+                                <div>我是搜索内容</div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="sidebar-users-wrapper">
@@ -333,6 +355,7 @@
 <script type="text/javascript" src="./js/amazeui.min.js"></script>
 <script type="text/javascript" src="./js/zUI.js"></script>
 <script type="text/javascript" src="./js/wechat.js"></script>
+<script type="text/javascript" src="./js/search.js"></script>
 
 <!--引入loading与tips-->
 <link rel="stylesheet" href="/js/tips/style.css?t=1">

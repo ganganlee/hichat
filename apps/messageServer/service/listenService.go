@@ -18,7 +18,7 @@ type (
 	//通用消息结构体
 	ClientMessage struct {
 		Type    string `json:"type" validate:"required"`     //消息类型
-		Service string `json:"services" validate:"required"` //使用的服务
+		Services string `json:"services" validate:"required"` //使用的服务
 		Content string `json:"content"`                      //消息类容
 	}
 
@@ -116,6 +116,8 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 		return
 	}
 
+	fmt.Println(clientMessage)
+
 	//验证消息格式是否正确
 	validate := validator.New()
 	if err = validate.Struct(clientMessage); err != nil {
@@ -123,7 +125,7 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 		return
 	}
 
-	switch clientMessage.Service {
+	switch clientMessage.Services {
 	case "UserService": //用户相关服务
 		var (
 			userService = NewUserService(uuid, Conns[uuid])

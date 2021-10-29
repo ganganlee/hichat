@@ -41,6 +41,8 @@ func NewMessageSearch(conn *websocket.Conn, uuid string) *MessageSearch {
 		messageSearchRpc = messageSearch.NewSearchMessageService(common.AppCfg.RpcServer.SearchRpc, service.Client())
 	)
 
+	fmt.Println(common.AppCfg.RpcServer.SearchRpc)
+
 	return &MessageSearch{
 		conn:             conn,
 		uuid:             uuid,
@@ -86,8 +88,10 @@ func (m *MessageSearch) Search(data string) {
 		rpcRes.Page = 1
 	}
 
+	fmt.Println(rpcRes)
 	rpcRsp, err = m.messageSearchRpc.Search(context.TODO(), rpcRes)
 	if err != nil {
+		fmt.Println("调用rpc方法失败")
 		core.ResponseSocketMessage(m.conn, "err", core.DecodeRpcErr(err.Error()).Error())
 		return
 	}
