@@ -168,7 +168,7 @@ func (g *GatewayService) saveMsg(res *SendMsgRequest) (err error) {
 	}
 
 	//获取表名称
-	tableName = common.GetMessageTable(res.FromId, res.ToId, res.MsgType)
+	tableName = core.GetMessageTable(res.FromId,res.ToId,res.MsgType)
 
 	//将消息入库
 	if err = g.model.Create(tableName, msg); err != nil {

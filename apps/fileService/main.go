@@ -39,7 +39,7 @@ func main() {
 	r.Static("/static", "./static")
 
 	//允许跨域
-	r.Use(middleware.Cors())
+	r.Use(middleware.Cors(),middleware.Auth())
 
 	//注册路由
 	route.InitRoute(r)

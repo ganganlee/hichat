@@ -8,6 +8,7 @@ import (
 type (
 	Files struct {
 		Id         int64
+		Uuid       string    `json:"uuid" xorm:"varchar(125) notnull"`
 		Name       string    `json:"name" xorm:"varchar(125) notnull"`
 		Type       string    `json:"type" xorm:"varchar(50) notnull"`
 		Path       string    `json:"path" xorm:"varchar(255) unique"`
@@ -37,7 +38,7 @@ func (f *FilesModel) FindByName(path string) (file *Files, err error) {
 	var exist bool
 	file = new(Files)
 
-	if exist, err = f.engine.Where("path=?",path).Get(file); err != nil {
+	if exist, err = f.engine.Where("path=?", path).Get(file); err != nil {
 		return nil, err
 	}
 

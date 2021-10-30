@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
 	"github.com/micro/go-micro/v2"
@@ -71,8 +70,6 @@ func (m *MessageService) SendMsg(data string) {
 		core.ResponseSocketMessage(m.conn, "err", err.Error())
 		return
 	}
-
-	fmt.Println(res)
 
 	//验证数据
 	if err = validate.Struct(res); err != nil {

@@ -86,6 +86,7 @@ func (u *UploadService) Upload(f *multipart.FileHeader, c *gin.Context) (rsp *Up
 	path = "/" + path
 
 	static := &models.Files{
+		Uuid: c.GetString("uuid"),
 		Name: f.Filename,
 		Type: fileType,
 		Path: path,
