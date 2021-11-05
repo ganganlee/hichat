@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
@@ -17,9 +18,9 @@ type (
 
 	//通用消息结构体
 	ClientMessage struct {
-		Type    string `json:"type" validate:"required"`     //消息类型
+		Type     string `json:"type" validate:"required"`     //消息类型
 		Services string `json:"services" validate:"required"` //使用的服务
-		Content string `json:"content"`                      //消息类容
+		Content  string `json:"content"`                      //消息类容
 	}
 
 	//mq消息结构体
@@ -83,8 +84,6 @@ func (l *ListenService) listenStatus(uuid string, conn *websocket.Conn) {
 		//删除用户登录状态
 		var redisKey = "user:mqHost:uuid:" + uuid + ":string:"
 		core.CLusterClient.Del(redisKey)
-
-		fmt.Println("用户断开连接")
 	}()
 
 	p = make([]byte, 1024)
@@ -111,12 +110,9 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 
 	err = json.Unmarshal(msg, clientMessage)
 	if err != nil {
-		fmt.Println(string(msg))
-		fmt.Println(err)
+		core.ResponseSocketMessage(Conns[uuid], "err", err.Error())
 		return
 	}
-
-	fmt.Println(clientMessage)
 
 	//验证消息格式是否正确
 	validate := validator.New()
@@ -125,96 +121,49 @@ func (l *ListenService) handleClientMessage(uuid string, msg []byte) {
 		return
 	}
 
-	switch clientMessage.Services {
+	//获取服务对象
+	var (
+		s interface{}
+		f []reflect.Value
+	)
+	if s, err = l.getServiceInterface(clientMessage.Services, uuid); err != nil {
+		core.ResponseSocketMessage(Conns[uuid], "err", err.Error())
+		return
+	}
+
+	//调用服务方法
+	if f, err = core.CallFuncByName(s, clientMessage.Type, clientMessage.Content); err != nil {
+		core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
+		return
+	}
+	_ = f
+}
+
+//获取服务对象
+func (l *ListenService) getServiceInterface(services string, uuid string) (s interface{}, err error) {
+	switch services {
 	case "UserService": //用户相关服务
-		var (
-			userService = NewUserService(uuid, Conns[uuid])
-			f           []reflect.Value
-		)
-
-		if f, err = core.CallFuncByName(userService, clientMessage.Type, clientMessage.Content); err != nil {
-			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
-			return
-		}
-
-		//调用反射得到的方法
-		_ = f
+		s = NewUserService(uuid, Conns[uuid])
 		break
 	case "UserGroupsService": //用户群相关
-		var (
-			userGroupsService = NewUserGroupService(uuid, Conns[uuid])
-			f                 []reflect.Value
-		)
-
-		if f, err = core.CallFuncByName(userGroupsService, clientMessage.Type, clientMessage.Content); err != nil {
-			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
-			return
-		}
-
-		//调用反射得到的方法
-		_ = f
+		s = NewUserGroupService(uuid, Conns[uuid])
 		break
 	case "UserGroupMemberService": //用户群成员相关
-		var (
-			memberService = NewUserGroupMembersService(Conns[uuid], uuid)
-			f             []reflect.Value
-		)
-
-		if f, err = core.CallFuncByName(memberService, clientMessage.Type, clientMessage.Content); err != nil {
-			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
-			return
-		}
-
-		//调用反射得到的方法
-		_ = f
+		s = NewUserGroupMembersService(Conns[uuid], uuid)
 		break
 	case "HistoryRecordService": //用户历史消息相关
-		var (
-			history = NewHistoryRecord(Conns[uuid], uuid)
-			f       []reflect.Value
-		)
-
-		if f, err = core.CallFuncByName(history, clientMessage.Type, clientMessage.Content); err != nil {
-			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
-			return
-		}
-
-		//调用反射得到的方法
-		_ = f
+		s = NewHistoryRecord(Conns[uuid], uuid)
 		break
 	case "messageService":
-		var (
-			message = NewMessageService(Conns[uuid], uuid)
-			f       []reflect.Value
-		)
-
-		if f, err = core.CallFuncByName(message, clientMessage.Type, clientMessage.Content); err != nil {
-			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
-			return
-		}
-
-		//调用反射得到的方法
-		_ = f
+		s = NewMessageService(Conns[uuid], uuid)
 		break
-
 	case "messageSearchService": //用户搜索消息
-		var (
-			message = NewMessageSearch(Conns[uuid], uuid)
-			f       []reflect.Value
-		)
-
-		if f, err = core.CallFuncByName(message, clientMessage.Type, clientMessage.Content); err != nil {
-			core.ResponseSocketMessage(Conns[uuid], "err", "方法"+clientMessage.Type+"不存在")
-			return
-		}
-
-		//调用反射得到的方法
-		_ = f
+		s = NewMessageSearch(Conns[uuid], uuid)
 		break
-
 	default:
-		fmt.Println(clientMessage.Content)
+		return nil, errors.New("服务不存在")
 	}
+	return s, nil
 }
 
 //接收rabbitMq消息

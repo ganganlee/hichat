@@ -25,6 +25,7 @@ type (
 	SearchRequest struct {
 		Keywords string `json:"keywords" validate:"required"`
 		ToId     string `json:"to_id" validate:"required"`
+		IsGroup  bool   `json:"is_group"`
 		FromId   string `json:"from_id"`
 		Page     uint32 `json:"page"`
 		PageSize uint32 `json:"page_size"`
@@ -78,6 +79,7 @@ func (m *MessageSearch) Search(data string) {
 		Page:     res.Page,
 		PageSize: res.PageSize,
 		Keywords: res.Keywords,
+		IsGroup:  res.IsGroup,
 		FromId:   m.uuid,
 		ToId:     res.ToId,
 	}
@@ -88,13 +90,12 @@ func (m *MessageSearch) Search(data string) {
 		rpcRes.Page = 1
 	}
 
-	fmt.Println(rpcRes)
 	rpcRsp, err = m.messageSearchRpc.Search(context.TODO(), rpcRes)
 	if err != nil {
-		fmt.Println("调用rpc方法失败")
 		core.ResponseSocketMessage(m.conn, "err", core.DecodeRpcErr(err.Error()).Error())
 		return
 	}
 
-	fmt.Println(rpcRsp)
+	//搜索成功，返回结果
+	core.ResponseSocketMessage(m.conn, "searchResponse", rpcRsp)
 }

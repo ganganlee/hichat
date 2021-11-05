@@ -1105,15 +1105,22 @@ iframe{
 }
 #search-content{
 	padding: 0 15px;
+	display: none;
 }
 #search-total{
 	line-height: 30px;
 	border-bottom: 1px solid #666;
 	margin-top: 5px;
 }
-#search-content li>div{
-	font-weight: 700;
-}
 #search-content li{
 	margin-top: 5px;
+	margin-bottom: 10px;
+}
+#search-content li em{
+	font-weight: 700;
+	color: #f73131;
+	font-style: inherit;
+}
+#search-content li:first-child{
+	color: #999;
 }

@@ -103,6 +103,7 @@ function groupSetting(gid, e,type) {
     //搜索消息
     $('#sidebar-information').hide();
     $('#sidebar-search').show();
+    $('#search-content').hide();
     $('#sidebar-tool').fadeIn();
 }
 

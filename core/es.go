@@ -3,7 +3,6 @@ package core
 //es操作公共方法
 import (
 	"context"
-	"fmt"
 	"github.com/olivere/elastic/v7"
 )
 
@@ -54,42 +53,12 @@ func (e *Elasticsearch) Update(index, id string, content map[string]interface{})
 }
 
 //搜索文档
-func (e *Elasticsearch) Search(index string, keywords string, fromId string, toId string, page int, pageSize int) (total int64, list []*elastic.SearchHit, err error) {
+func (e *Elasticsearch) Search(index string, q *elastic.BoolQuery, pageSize int, from int, h *elastic.Highlight) (res *elastic.SearchResult, err error) {
 
-	var (
-		res  *elastic.SearchResult
-		from int
-	)
-
-	from = (page - 1) * pageSize
-	//控制搜索条件
-	fromIdQuery := elastic.NewMatchQuery("from_id", fromId)
-	toIdQuery := elastic.NewMatchQuery("to_id", toId)
-	keywordsQuery := elastic.NewMatchQuery("content", keywords)
-	b := elastic.NewBoolQuery()
-	b.Must(fromIdQuery, toIdQuery, keywordsQuery)
-
-	//控制高亮
-	h := elastic.NewHighlight()
-	h.Fields(elastic.NewHighlighterField("content"))
-
-	res, err = e.client.Search().Index(index).Query(b).Highlight(h).Size(pageSize).From(from).Do(context.TODO())
+	res, err = e.client.Search().Index(index).Query(q).Highlight(h).Size(pageSize).From(from).Do(context.TODO())
 	if err != nil {
-		return 0, nil, err
+		return nil, err
 	}
 
-	//总条数
-	total = res.Hits.TotalHits.Value
-	list = res.Hits.Hits
-	for _, val := range list {
-
-		b, err := val.Source.MarshalJSON()
-		if err != nil {
-			continue
-		}
-
-		fmt.Println(string(b))
-	}
-
-	return total, list, err
+	return res, nil
 }

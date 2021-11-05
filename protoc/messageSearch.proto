@@ -2,23 +2,20 @@
 syntax = "proto3";
 option go_package = "./;messageSearch";
 
-//消息结构体
-message Msg{
-  string content_type = 1;
-  string content = 2;
-}
 //搜索消息请求
 message SearchRequest{
   string from_id = 1;
   string to_id = 2;
   string keywords = 3;
-  uint32 page = 4;
-  uint32 page_size = 5;
+  bool is_group = 4;
+  uint32 page = 5;
+  uint32 page_size = 6;
 }
 //搜索消息响应
 message SearchResponse{
-  uint32 total = 1;
-  repeated Msg msg = 2;
+  int64 total = 1;
+  string result = 2;
+  string msg = 3;
 }
 
 service searchMessageService{

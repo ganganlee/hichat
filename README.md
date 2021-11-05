@@ -4,3 +4,8 @@
 - go-micro
 - docker && docker-compose
 - rabbitMq
+- mysql
+- redis
+- es
+- canal
+- etcd

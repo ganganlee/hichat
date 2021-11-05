@@ -119,4 +119,4 @@ function formatDateByTimeStamp(timestamp, mustIncludeTime){
     }
 
     return ret;
-};
+}
