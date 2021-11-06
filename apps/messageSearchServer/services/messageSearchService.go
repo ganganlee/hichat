@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/olivere/elastic/v7"
 	"hichat.zozoo.net/apps/messageSearchServer/common"
 	"hichat.zozoo.net/core"
@@ -45,24 +44,34 @@ func (m *MessageSearchService) Search(res *SearchRequest) (total int64, list []*
 		search *elastic.SearchResult
 	)
 
-	fmt.Println(res)
-
 	//控制搜索条件
-	q1 := elastic.NewBoolQuery()
-	q1.Must(
-		elastic.NewMatchQuery("from_id", res.FromId),
-		elastic.NewMatchQuery("to_id", res.ToId),
-	)
-	q2 := elastic.NewBoolQuery()
-	q2.Must(
-		elastic.NewMatchQuery("from_id", res.ToId),
-		elastic.NewMatchQuery("to_id", res.FromId),
-	)
-
-	keywordsQuery := elastic.NewMatchQuery("content", res.Keywords)
 	q := elastic.NewBoolQuery()
+	keywordsQuery := elastic.NewMatchQuery("content", res.Keywords)
 	q.Must(keywordsQuery)
-	q.Should(q1, q2)
+
+	//判断搜索内容，如果为群聊时搜索只需要判断to_id,如果为私聊时需要根据双方id查找
+	if res.IsGroup == false {
+		//私聊
+		q1 := elastic.NewBoolQuery()
+		q1.Must(
+			elastic.NewMatchQuery("from_id", res.FromId),
+			elastic.NewMatchQuery("to_id", res.ToId),
+		)
+		q2 := elastic.NewBoolQuery()
+		q2.Must(
+			elastic.NewMatchQuery("from_id", res.ToId),
+			elastic.NewMatchQuery("to_id", res.FromId),
+		)
+
+		q.Should(q1, q2)
+	} else {
+		//群聊
+		q1 := elastic.NewBoolQuery()
+		q1.Must(
+			elastic.NewMatchQuery("to_id", res.ToId),
+		)
+		q.Must(q1)
+	}
 
 	//分页控制
 	from := (int(res.Page) - 1) * int(res.PageSize)

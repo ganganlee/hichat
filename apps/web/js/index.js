@@ -389,6 +389,8 @@ function setUnreadMessage(token, type, content, clear) {
             message = content
     }
 
+    message = filterHtml(message);
+
     $(`.history-${token} .user_message`).html(message);
 
     //修改时间
@@ -584,6 +586,19 @@ function renderHistory() {
 }
 
 /**
+ * 过滤换行标签
+ * @param str
+ * @returns {*}
+ */
+function filterHtml(str) {
+    str = str.replace(/<p>/gi,"");
+    str = str.replace(/<\/p>/gi,"");
+    str = str.replace(/<div>/gi,"");
+    str = str.replace(/<\/div>/gi,"");
+    str = str.replace(/<br>/gi,"");
+    return str;
+}
+/**
  * 向聊天列表中添加html
  * @param user
  * @constructor
@@ -613,6 +628,7 @@ function AppendHistoryHtml(user) {
             break;
     }
 
+    user.msg = filterHtml(user.msg)
     let html = `
         <li 
         class="history-${user['token']}" 

@@ -14,7 +14,6 @@ function searchMessage() {
     let isGroup = false;
     if (CHATInfo.hasOwnProperty('group') && CHATInfo['group']) {
         isGroup = true
-        console.log(122);
     }
 
     let data = {
@@ -27,8 +26,6 @@ function searchMessage() {
         })
     };
 
-    console.log(data);
-
     ws.send(JSON.stringify(data))
 }
 
@@ -40,8 +37,12 @@ function searchResponse(result) {
 
     //设置搜索条数
     let list = JSON.parse(result.result);
+    $('#search-content').show();
     if (list.length == 0) {
-        jqtoast('未搜索到数据');
+        let keywords = $('input[name=message-search]').val();
+        $('#search-total').text(`没有找到"${keywords}"相关结果`);
+        $("#search-content ul").html('');
+
         return false;
     }
 
@@ -57,16 +58,59 @@ function searchResponse(result) {
     if (CHATInfo.hasOwnProperty('group') && CHATInfo['group']) {
         members = ChatMembers;
     }
-    $('#search-content').show();
-    $('.search-total').text(result.total + '条相关记录');
+
+    $('#search-total').text(result.total + '条相关记录');
     let html = '';
     for (let i in list) {
+        console.log(list[i]);
         let t = (new Date(list[i].create_time)).getTime() * 1000000;
         let d = formatDateByTimeStamp(t);
+        let content;
+        switch (list[i].content_type) {
+            case 'mp3':
+                content = JSON.parse(list[i].content);
+                content = `
+                    <div>
+                        <p>${content.name}</p>
+                        <audio style="width: 100%" controls src="${UPLOADAPI}${content.path}"></audio>
+                    </div>
+                `;
+                break;
+            case 'mp4':
+                content = JSON.parse(list[i].content);
+                content = `
+                    <div>
+                        <p>${content.name}</p>
+                        <video style="width: 100%" controls src="${UPLOADAPI}${content.path}"></video>
+                    </div>
+                `;
+                break;
+            case 'img':
+                content = JSON.parse(list[i].content);
+                content = `
+                    <div>
+                        <p>${content.name}</p>
+                        <img src="${UPLOADAPI}${content.path}" alt="" style="max-width: 100%">
+                    </div>
+                `;
+                break;
+            case 'file':
+                content = JSON.parse(list[i].content);
+                content = `
+                    <div>
+                        <p><a href="${UPLOADAPI}${content.path}">${content.name}</a></p>
+                    </div>
+                `;
+                break;
+            default:
+                content = list[i].content;
+                break;
+        }
+
         html += `
             <li>
                 <p>${members[list[i]['from_id']].username} <span>${d}</span></p>
-                <div>${list[i].content}</div>
+                ${content}
             </li>
         `;
     }

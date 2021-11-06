@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/registry/etcd"
@@ -52,7 +51,6 @@ func main() {
 	//连接canal
 	go common.InitCanal(cfg.CanalConfig.Address, cfg.CanalConfig.Port, cfg.CanalConfig.Username, cfg.CanalConfig.Password, cfg.CanalConfig.Destination, cfg.CanalConfig.SoTimeOut, cfg.CanalConfig.IdleTimeOut)
 
-	fmt.Println(cfg)
 	//初始化微服务
 	service := micro.NewService(
 		micro.Name(cfg.ServerName),

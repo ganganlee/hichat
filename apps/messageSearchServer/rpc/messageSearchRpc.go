@@ -37,6 +37,7 @@ func (m *MessageSearchRpc) Search(ctx context.Context, res *messageSearch.Search
 		FromId:   res.FromId,
 		ToId:     res.ToId,
 		Keywords: res.Keywords,
+		IsGroup: res.IsGroup,
 		PageSize: res.PageSize,
 		Page:     res.Page,
 	}
