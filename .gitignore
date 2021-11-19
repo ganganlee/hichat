@@ -1,1 +1,7 @@
 apps/fileService/static
+apps/fileService/main
+apps/gatewayServer/main
+apps/messageSearchServer/main
+apps/messageServer/main
+apps/userServer/main
+apps/webServer/main
