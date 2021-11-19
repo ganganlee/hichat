@@ -12,9 +12,9 @@ import (
 //文件服务
 func main() {
 	var (
-		path string
 		err  error
 		cfg  *common.Config
+		path string
 	)
 
 	//获取当前目录
@@ -39,7 +39,7 @@ func main() {
 	r.Static("/static", "./static")
 
 	//允许跨域
-	r.Use(middleware.Cors(),middleware.Auth())
+	r.Use(middleware.Cors(), middleware.Auth())
 
 	//注册路由
 	route.InitRoute(r)

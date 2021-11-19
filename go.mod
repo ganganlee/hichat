@@ -28,6 +28,7 @@ require (
 	github.com/micro/go-micro/v2 v2.9.1
 	github.com/micro/go-plugins/wrapper/breaker/hystrix/v2 v2.9.1
 	github.com/micro/go-plugins/wrapper/ratelimiter/uber/v2 v2.9.1
+	github.com/nacos-group/nacos-sdk-go v1.0.9
 	github.com/olivere/elastic/v7 v7.0.29
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect

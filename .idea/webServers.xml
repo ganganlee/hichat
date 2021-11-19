@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="68004918-7b70-4fcf-b778-35293139cb7c" name="web">
+        <fileTransfer rootFolder="/usr/local/nginx/html/hichat.zozoo.net/" accessType="SFTP" host="106.13.227.59" port="22" sshConfigId="161131b4-42e9-4bbf-8185-fd690a4256ce" sshConfig="root@106.13.227.59:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

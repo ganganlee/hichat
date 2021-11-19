@@ -226,6 +226,7 @@ function chat(token, msgType) {
     switch (msgType) {
         case 'groupMessage'://群聊
             $('.extend').attr('onclick', 'groupSetting("' + token + '",event)');
+            $('#sidebar-search').hide();
             break;
         case 'privateMessage'://私聊
             CHATInfo = FRIENDS[token];
@@ -915,7 +916,7 @@ function updateUserInfo() {
 
     const data = {
         "type": "UpdateInfo",
-        "service": "UserService",
+        "services": "UserService",
         "content": JSON.stringify({
             username: username,
             password: password,

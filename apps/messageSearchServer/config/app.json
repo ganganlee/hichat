@@ -2,18 +2,18 @@
   "version": "0.0.1",
   "server_name": "hichat.search.rpc",
   "etcd": {
-    "host": "192.168.31.11:2379",
+    "host": "106.13.227.59:2379",
     "username": "",
     "password": ""
   },
   "es": {
-    "host": "http://192.168.31.11:9200",
+    "host": "http://106.13.227.59:9200",
     "username": "elastic",
     "password": "123456",
     "index": "hichat_message"
   },
   "canal_config": {
-    "address": "192.168.31.11",
+    "address": "106.13.227.59",
     "port": 11111,
     "username": "canal",
     "password": "canal",

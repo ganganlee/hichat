@@ -8,7 +8,6 @@ import (
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/registry/etcd"
-	"github.com/micro/go-plugins/wrapper/breaker/hystrix/v2"
 	"hichat.zozoo.net/apps/messageServer/common"
 	"hichat.zozoo.net/core"
 	gateway "hichat.zozoo.net/rpc/Gateway"
@@ -40,9 +39,11 @@ func NewMessageService(conn *websocket.Conn, uuid string) *MessageService {
 	var (
 		service = micro.NewService(
 			micro.Registry(etcd.NewRegistry(registry.Addrs(common.AppCfg.Etcd.Host))),
-			micro.WrapClient(
-				hystrix.NewClientWrapper(),
-			),
+
+			//服务超时
+			//micro.WrapClient(
+			//	hystrix.NewClientWrapper(),
+			//),
 		)
 
 		gatewayRpc = gateway.NewGatewayService(common.AppCfg.RpcServer.GatewayRpc, service.Client())

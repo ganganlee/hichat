@@ -213,7 +213,7 @@ function addMembers() {
         //发送添加成员请求
         let json = {
             "type": "AddMember",
-            "service": "UserGroupMemberService",
+            "services": "UserGroupMemberService",
             "content": JSON.stringify({"uuid": data[i], "gid": CHATInfo.uuid})
         }
         ws.send(JSON.stringify(json))
@@ -281,7 +281,7 @@ function removeMembers(el) {
             //发送添加成员请求
             let json = {
                 "type": "RemoveMember",
-                "service": "UserGroupMemberService",
+                "services": "UserGroupMemberService",
                 "content": JSON.stringify({"uuid": uuid, "gid": CHATInfo.uuid})
             }
             ws.send(JSON.stringify(json))
@@ -306,7 +306,7 @@ function outGroup(gid) {
             //发送添加成员请求
             let json = {
                 "type": "OutGroup",
-                "service": "UserGroupMemberService",
+                "services": "UserGroupMemberService",
                 "content": gid
             }
             ws.send(JSON.stringify(json))
@@ -343,7 +343,7 @@ function delGroup(gid) {
             //发送添加成员请求
             let json = {
                 "type": "DelGroup",
-                "service": "UserGroupsService",
+                "services": "UserGroupsService",
                 "content": gid
             }
             ws.send(JSON.stringify(json))
