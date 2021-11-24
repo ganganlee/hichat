@@ -4,7 +4,6 @@ import (
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/registry/etcd"
-	limiter "github.com/micro/go-plugins/wrapper/ratelimiter/uber/v2"
 	xorm2 "github.com/xormplus/xorm"
 	"hichat.zozoo.net/apps/gatewayServer/common"
 	"hichat.zozoo.net/apps/gatewayServer/models"
@@ -32,6 +31,7 @@ func main() {
 		log.Fatalf("获取配置文件目录失败 err:%v\n", err)
 	}
 	path = path + "/config/app.json"
+	//path = path + "/config/app_localhost.json"
 
 	//获取配置文件
 	if cfg, err = common.GetConfig(path); err != nil {
@@ -54,9 +54,9 @@ func main() {
 		micro.Name(cfg.ServerName),
 		micro.Registry(etcd.NewRegistry(registry.Addrs(cfg.Etcd.Host))),
 		//限流
-		micro.WrapHandler(
-			limiter.NewHandlerWrapper(10),
-			),
+		//micro.WrapHandler(
+		//	limits.NewHandlerWrapper(10),
+		//	),
 	)
 	service.Init()
 

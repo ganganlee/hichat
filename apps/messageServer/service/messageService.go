@@ -6,6 +6,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
 	"github.com/micro/go-micro/v2"
+	"github.com/micro/go-micro/v2/client"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-micro/v2/registry/etcd"
 	"hichat.zozoo.net/apps/messageServer/common"
@@ -33,6 +34,12 @@ type (
 		GroupId     string `json:"group_id"`                         //群id
 	}
 )
+
+//设置超时时间
+var opss client.CallOption = func(o *client.CallOptions) {
+	o.RequestTimeout = time.Second * 3
+	o.DialTimeout = time.Second * 3
+}
 
 func NewMessageService(conn *websocket.Conn, uuid string) *MessageService {
 
@@ -186,7 +193,7 @@ func (m *MessageService) sendMsgToGateway(res *SendMsgRequest) {
 		Content:     res.Content,
 	}
 
-	if _, err = m.gatewayRpc.SendMsg(context.TODO(), rpcRes); err != nil {
+	if _, err = m.gatewayRpc.SendMsg(context.TODO(), rpcRes,opss); err != nil {
 		core.ResponseSocketMessage(m.conn, "err", core.DecodeRpcErr(err.Error()).Error())
 		return
 	}

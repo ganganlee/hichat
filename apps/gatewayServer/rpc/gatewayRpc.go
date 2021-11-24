@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"hichat.zozoo.net/apps/gatewayServer/service"
 	gateway "hichat.zozoo.net/rpc/Gateway"
@@ -34,6 +35,8 @@ func (g *GatewayRpc) SendMsg(ctx context.Context, res *gateway.SendMsgRequest, r
 		ContentType: res.ContentType,
 		Content:     res.Content,
 	}
+
+	fmt.Println("接收到rpc消息：",msg.Content)
 
 	//参数验证
 	if err = validate.Struct(msg); err != nil {

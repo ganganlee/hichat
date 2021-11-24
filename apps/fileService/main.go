@@ -22,6 +22,7 @@ func main() {
 		log.Fatalf("获取配置文件目录失败 err:%v\n", err)
 	}
 	path = path + "/config/app.json"
+	//path = path + "/config/app_localhost.json"
 
 	//获取配置文件
 	if cfg, err = common.GetConfig(path); err != nil {

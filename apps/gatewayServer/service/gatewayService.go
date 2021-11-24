@@ -136,7 +136,7 @@ func (g *GatewayService) sendMq(id string, msg *SendMsgRequest) (err error) {
 
 	//判断当前mq是否存在
 	if mq, exist = mqList[mqHost]; !exist {
-		return errors.New(mqHost + "消息队列主机未链接")
+		return errors.New(mqHost + "消息队列主机未链接吧")
 	}
 
 	//将对象转为字符切片

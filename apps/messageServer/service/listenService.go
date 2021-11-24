@@ -181,6 +181,7 @@ func (l *ListenService) receiveMqMsg() {
 	)
 
 	if err != nil {
+		fmt.Println("接收mq消失失败")
 		log.Fatal(err)
 	}
 

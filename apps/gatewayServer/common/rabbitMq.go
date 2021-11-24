@@ -19,8 +19,6 @@ func InitRabbitMq(cfg *Config) {
 	MqQueue = make(map[string]*amqp.Channel)
 	mqConfig := cfg.RabbitMq
 
-	fmt.Println(mqConfig)
-
 	//循环数组，链接mq
 	for _, host := range mqConfig {
 		conn, err := amqp.Dial("amqp://guest:guest@" + host)
@@ -53,7 +51,6 @@ func InitRabbitMq(cfg *Config) {
 
 //向rabbitMq服务器发送消息
 func Publish(ch *amqp.Channel, body []byte) error {
-
 	return ch.Publish(
 		"",        //exchange
 		queueName, //routing key(queue name)
